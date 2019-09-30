@@ -24,9 +24,8 @@ trait LoggingAndMetrics extends ExternalId {
           akkaLog.debug(s"${ctx.request.method.value} ${ctx.request.uri.path} - received", logExternalId)
           mapResponse { resp: HttpResponse =>
             val completionInMs: Long = System.currentTimeMillis() - startTime
-            //They must be cast to Any because it throws an ambiguous reference in the logger because it cant tell if its an Object or a Any*
             akkaLog.debug(s"${ctx.request.method.value} ${ctx.request.uri.path} - completion", logFlatten(logExternalId, value("completionInMs", completionInMs)))
-            udpLog.info(s"service.response.duration:$completionInMs|g|#namespace:${AppConf.envName},path:${ctx.request.uri.path},service:${system.name},method:${ctx.request.method.value}")
+            udpLog.info(s"service.response.duration:$completionInMs|g|#env:${AppConf.envName},path:${ctx.request.uri.path},service:${system.name},method:${ctx.request.method.value}")
             resp
           }
         }
