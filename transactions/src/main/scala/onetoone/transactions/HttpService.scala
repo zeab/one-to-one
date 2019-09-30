@@ -55,6 +55,10 @@ trait HttpService extends ServiceCore with AutoDerivation {
                       session.handle
                         .execute(s"insert into transactions.transactions (userId, date, timestamp, transactionId, amountInPennies) values ('$userId', '${req.timestamp}', now(), '${req.transactionId}', ${req.amountInPennies});")
                         .list
+                      //update point totals here...
+                      //but i feel like im over loading this just a little its really heavy...
+                      //or do i sent the kafka message here to update the point totals...
+                      //what if
                       complete(StatusCodes.Accepted)
                   }
                 case None => throw new Exception("no user id found for transaction")

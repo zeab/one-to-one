@@ -1,5 +1,94 @@
 
 
+so what are some rules
+
+coupons
+    free item
+    birthday
+    loyal member
+
+promotion
+    Nx points
+    buy one get one
+    % off item
+    % off items
+
+tiers
+    white
+        100 points to next tier
+        re-eval 0 months
+        earns 1.2x points
+    green
+        300 points to next tier
+        re-eval 3 months
+        earns 1.7x points
+    blue
+        500 points to next tier
+        re-eval 9 months
+        earns 2.3x points
+    black
+        1000 points to next tier
+        re-eval 12 months
+        earns 3x points
+
+
+business rules
+    happen every earn transaction
+    based on
+        who i am
+        what im using to pay
+        special promotions or rules for that day
+        timed rule
+        tier levels
+
+
+butttt how do i actually know what the rules do...???
+like for real... how would i know that is what this rule does....???!!!!
+
+
+
+every one earns double points
+
+business rule
+    name
+    when it effects
+        dates
+    who it effects
+        List(a list of the people this should effect)
+    what it effects
+        List(which transaction types)
+    where it effects?
+        List(which programs maybe what it effects... maybe...??)
+
+earn points
+    these should always be positive
+    i dont really need to know how many points i currently have right...?
+    update the point values here
+burn points
+    these should always be negative
+    i need to check if i have enough points
+    this really should just be asking if i have enough points currently
+    and updating those points right then and then writing it to the ledger and transactions tables
+
+earn coupons
+burn coupons
+
+a points service...?
+something that listens to the transaction events
+pulls down the program rules
+and then applys them as we go to each transaction coming in
+and updating the point totals for only those customers
+
+
+
+
+
+
+also how do i do tiers...
+
+and multi tier redemption
+and program tiers...
+
 what do i actually need to do...
 
 program CRUD
