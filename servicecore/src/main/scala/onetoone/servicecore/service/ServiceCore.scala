@@ -35,7 +35,7 @@ import net.logstash.logback.argument.StructuredArgument
 trait ServiceCore extends LoggingAndMetrics
   with Exceptions with Rejections
   with Unmarshallers with AutoDerivation
-  with ServiceHandlers {
+  with ServiceHandlers with LoggingHandles {
 
   implicit val materializer: ActorMaterializer
   val cluster: Option[Cluster] = None
@@ -148,17 +148,6 @@ trait ServiceCore extends LoggingAndMetrics
         }
       }
     }
-
-  def logFlatten(args: AnyRef*): Array[Object] = {
-    args.flatMap {
-      case s: Seq[_] => s
-      case x => Seq(x)
-    }.toArray.asInstanceOf[Array[Object]]
-  }
-
-  def logUniqueId(id: String): StructuredArgument = value("unique-id", id)
-
-  def logStatus(status: Boolean): StructuredArgument = value("status", status)
 
   def startKafkaProducer(implicit system: ActorSystem): Option[KafkaProducer[String, String]] = {
     val producerProps: Properties = new Properties()

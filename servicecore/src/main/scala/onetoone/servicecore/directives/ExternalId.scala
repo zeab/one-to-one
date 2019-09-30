@@ -1,26 +1,21 @@
 package onetoone.servicecore.directives
 
 //Imports
-import net.logstash.logback.argument.StructuredArguments.value
-import net.logstash.logback.argument.StructuredArgument
+import onetoone.servicecore.service.LoggingHandles
 //Akka
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 
-trait ExternalId {
-
-  private val externalIdKey: String = "external-id"
+trait ExternalId extends LoggingHandles {
 
   def extractExternalId: Directive1[String] =
     extractRequestContext.flatMap { ctx: RequestContext =>
       val externalId: String =
         ctx.request.headers
-          .find(_.name().toLowerCase == externalIdKey)
+          .find(_.name().toLowerCase == "external-id")
           .map(_.value())
-          .getOrElse(s"no-${externalIdKey}-found")
+          .getOrElse(s"no-external-id-found")
       provide(externalId)
     }
-
-  def logExternalId(implicit id: String): StructuredArgument = value(externalIdKey, id)
 
 }
