@@ -22,7 +22,7 @@ trait Unmarshallers {
     Unmarshaller
       .stringUnmarshaller
       .forContentTypes(`application/json`)
-      .map{str: String =>
+      .map { str: String =>
         decode[A](str) match {
           case Right(value) => value
           case Left(ex) => throw ex

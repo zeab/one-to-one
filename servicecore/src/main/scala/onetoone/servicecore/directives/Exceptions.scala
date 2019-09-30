@@ -1,7 +1,6 @@
 package onetoone.servicecore.directives
 
 //Imports
-import io.circe.generic.AutoDerivation
 import onetoone.servicecore.customexceptions.{CardAlreadyRegisteredException, NoSessionException, UserIdNotFoundException}
 import onetoone.servicecore.models.error.ErrorResponse
 //Akka
@@ -10,6 +9,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 //Slf4j
 import org.slf4j.Logger
+//Circe
+import io.circe.generic.AutoDerivation
 
 trait Exceptions extends ExternalId with Marshallers with AutoDerivation {
 

@@ -1,20 +1,12 @@
 package onetoone.servicecore.service
 
 //Imports
-import java.time.Duration
-import java.util.Properties
-
-import akka.Done
-import com.datastax.driver.core.{ResultSet, Row}
-import net.logstash.logback.argument.StructuredArgument
 import onetoone.servicecore.AppConf
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
 import onetoone.servicecore.models.statuscheck.StatusCheckResponse
+//Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.KafkaProducer
-
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration._
 //Akka
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -24,19 +16,21 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 //Scala
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import scala.collection.JavaConverters._
 //Slf4j
 import net.logstash.logback.argument.StructuredArguments.value
-import org.slf4j.Logger
 //Circe
 import io.circe.generic.AutoDerivation
 //Java
-import java.util.UUID
+import java.time.Duration
+import java.util.{Properties, UUID}
 //Datastax
-import com.datastax.driver.core.{Cluster, Session}
-
-import scala.collection.JavaConverters._
+import com.datastax.driver.core.{Cluster, ResultSet, Row, Session}
+//Logback
+import net.logstash.logback.argument.StructuredArgument
 
 trait ServiceCore extends LoggingAndMetrics
   with Exceptions with Rejections
@@ -44,13 +38,12 @@ trait ServiceCore extends LoggingAndMetrics
   with ServiceHandlers {
 
   implicit val materializer: ActorMaterializer
-  val akkaLog: Logger
   val cluster: Option[Cluster] = None
   val session: Option[Session] = None
   val producer: Option[KafkaProducer[String, String]] = None
   val consumer: Option[KafkaConsumer[String, String]] = None
 
-  def startCassandraCluster: Option[Cluster] =
+  def startCassandraCluster(implicit system: ActorSystem): Option[Cluster] =
     Try {
       if (AppConf.cassandraUsername != "" && AppConf.cassandraPassword != "") {
         Cluster.builder
@@ -65,28 +58,30 @@ trait ServiceCore extends LoggingAndMetrics
       }
     } match {
       case Success(openCluster) =>
-        akkaLog.info("Cassandra Cluster - connected")
+        system.log.info("Cassandra Cluster - connected")
         Some(openCluster)
       case Failure(ex) =>
-        akkaLog.error(s"Cassandra Cluster - $ex")
+        system.log.error(s"Cassandra Cluster - $ex")
         None
     }
 
-  def startCassandraSession(implicit cluster: Option[Cluster]): Option[Session] =
+  def startCassandraSession(implicit system: ActorSystem, cluster: Option[Cluster]): Option[Session] =
     cluster match {
       case Some(openCluster) =>
         Try(openCluster.connect()) match {
-          case Success(openSession) => Some(openSession)
+          case Success(openSession) =>
+            system.log.info("Cassandra Session - connected")
+            Some(openSession)
           case Failure(ex) =>
-            akkaLog.error(s"Cassandra Session - $ex")
+            system.log.error(s"Cassandra Session - $ex")
             None
         }
       case None =>
-        akkaLog.debug("Cassandra Session - no cluster provided")
+        system.log.debug("Cassandra Session - no cluster provided")
         None
     }
 
-  def startHttpService(route: Route)(implicit system: ActorSystem, ec:ExecutionContext): Future[Http.ServerBinding] = {
+  def startHttpService(route: Route)(implicit system: ActorSystem, ec: ExecutionContext): Future[Http.ServerBinding] = {
     val httpServiceHost: String = AppConf.httpHost
     val httpServicePort: Int = AppConf.httpPort
     val httpServerSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
@@ -96,9 +91,9 @@ trait ServiceCore extends LoggingAndMetrics
         system.log.debug("Http Server - accepted new connection from {}", connection.remoteAddress)
         connection.handleWith(route)
       }).run()
-    httpBinding.map{ binding: Http.ServerBinding =>
-        system.log.info(s"Http Server - is now online at http://$httpServiceHost:$httpServicePort")
-        binding
+    httpBinding.map { binding: Http.ServerBinding =>
+      system.log.info(s"Http Server - is now online at http://$httpServiceHost:$httpServicePort")
+      binding
     }
   }
 
@@ -121,8 +116,8 @@ trait ServiceCore extends LoggingAndMetrics
             }
           val kafkaProducerStatus: Future[Boolean] = Future(true)
           val kafkaConsumerStatus: Future[Boolean] =
-            Future{
-              if(AppConf.kafkaConsumerEnabled){
+            Future {
+              if (AppConf.kafkaConsumerEnabled) {
                 Try(consumer.handle.listTopics(Duration.ofMillis(2500))) match {
                   case Success(_) => true
                   case Failure(_) => false
@@ -141,11 +136,11 @@ trait ServiceCore extends LoggingAndMetrics
               allStatus match {
                 case (true, true, true) =>
                   val status: Boolean = true
-                  akkaLog.debug(pathName, logFlatten(logUniqueId(uniqueId),logExternalId, logStatus(status)): _*)
+                  akkaLog.debug(pathName, logFlatten(logUniqueId(uniqueId), logExternalId, logStatus(status)): _*)
                   complete(StatusCodes.OK, StatusCheckResponse(pathName, status, uniqueId))
                 case _ =>
                   val status: Boolean = false
-                  akkaLog.debug(pathName, logFlatten(logUniqueId(uniqueId),logExternalId, logStatus(status)): _*)
+                  akkaLog.debug(pathName, logFlatten(logUniqueId(uniqueId), logExternalId, logStatus(status)): _*)
                   complete(StatusCodes.InternalServerError, StatusCheckResponse(pathName, status, uniqueId))
               }
             case Failure(ex) => throw ex
@@ -157,7 +152,7 @@ trait ServiceCore extends LoggingAndMetrics
   def logFlatten(args: AnyRef*): Array[Object] = {
     args.flatMap {
       case s: Seq[_] => s
-      case x         => Seq(x)
+      case x => Seq(x)
     }.toArray.asInstanceOf[Array[Object]]
   }
 
@@ -165,16 +160,16 @@ trait ServiceCore extends LoggingAndMetrics
 
   def logStatus(status: Boolean): StructuredArgument = value("status", status)
 
-  def startKafkaProducer: Option[KafkaProducer[String, String]] ={
+  def startKafkaProducer(implicit system: ActorSystem): Option[KafkaProducer[String, String]] = {
     val producerProps: Properties = new Properties()
     producerProps.put("bootstrap.servers", s"${AppConf.kafkaHost}:${AppConf.kafkaPort}")
     producerProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     producerProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    akkaLog.debug("Kafka Producer - started")
+    system.log.info("Kafka Producer - started")
     Some(new KafkaProducer[String, String](producerProps))
   }
 
-  def startKafkaConsumer(consumerGroupId: String = UUID.randomUUID().toString, topics:List[String] = List.empty)(implicit system: ActorSystem, ec: ExecutionContext): Option[KafkaConsumer[String, String]] = {
+  def startKafkaConsumer(consumerGroupId: String = UUID.randomUUID().toString, topics: List[String] = List.empty)(implicit system: ActorSystem, ec: ExecutionContext): Option[KafkaConsumer[String, String]] = {
     val consumerProps: Properties = new Properties()
     consumerProps.put("bootstrap.servers", s"${AppConf.kafkaHost}:${AppConf.kafkaPort}")
     consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
@@ -182,7 +177,7 @@ trait ServiceCore extends LoggingAndMetrics
     consumerProps.put("group.id", consumerGroupId)
     val consumer: KafkaConsumer[String, String] =
       new KafkaConsumer[String, String](consumerProps)
-    akkaLog.debug("Kafka Consumer - started")
+    system.log.info("Kafka Consumer - started")
     consumer.subscribe(topics.asJavaCollection)
     Future {
       while (true) {
@@ -191,7 +186,7 @@ trait ServiceCore extends LoggingAndMetrics
         records.foreach { msg => system.eventStream.publish(msg) }
       }
     }
-    akkaLog.debug("Kafka Consumer - polling")
+    system.log.info("Kafka Consumer - polling")
     Some(consumer)
   }
 

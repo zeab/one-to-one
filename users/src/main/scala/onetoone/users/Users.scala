@@ -1,11 +1,7 @@
 package onetoone.users
 
 //Imports
-import akka.Done
 import onetoone.servicecore.service.ServiceShutdown
-
-import scala.concurrent.Await
-import scala.util.{Failure, Success}
 //Akka
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -17,7 +13,6 @@ import com.datastax.driver.core.{Cluster, Session}
 import org.slf4j.{Logger, LoggerFactory}
 //Scala
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
 
 object Users extends App with HttpService with ServiceShutdown {
 

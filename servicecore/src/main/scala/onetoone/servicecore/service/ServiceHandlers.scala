@@ -1,8 +1,10 @@
 package onetoone.servicecore.service
 
 //Imports
-import com.datastax.driver.core.{Cluster, Session}
 import onetoone.servicecore.customexceptions.NoSessionException
+//Datastax
+import com.datastax.driver.core.{Cluster, Session}
+//Kafka
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 

@@ -7,7 +7,8 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import onetoone.servicecore.service.ServiceShutdown
-
+import scala.concurrent.duration._
+import scala.concurrent.Await
 import scala.util.{Failure, Success}
 //Datastax
 import com.datastax.driver.core.{Cluster, Session}
@@ -36,7 +37,7 @@ object Wallets extends App with HttpService with ServiceShutdown {
   override implicit val cluster: Option[Cluster] = startCassandraCluster
   override implicit val session: Option[Session] = startCassandraSession
 
-  //Shutdown the system
+  //Add the shutdown hooks
   shutdownHookThread
 
 }

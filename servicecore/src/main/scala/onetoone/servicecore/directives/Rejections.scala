@@ -1,7 +1,6 @@
 package onetoone.servicecore.directives
 
 //Imports
-import io.circe.generic.AutoDerivation
 import onetoone.servicecore.models.error.ErrorResponse
 //Akka
 import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
@@ -14,8 +13,10 @@ import org.slf4j.Logger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
+//Circe
+import io.circe.generic.AutoDerivation
 
-trait Rejections extends ExternalId with Marshallers with AutoDerivation{
+trait Rejections extends ExternalId with Marshallers with AutoDerivation {
 
   val akkaLog: Logger
   implicit val materializer: ActorMaterializer
