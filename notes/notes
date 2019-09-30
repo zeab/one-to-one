@@ -1,0 +1,59 @@
+
+
+what do i actually need to do...
+
+program CRUD
+users CRUD
+wallet CRUD
+contact info CRUD
+transaction CRUD
+
+userId: walletKey: rolodexKey
+cardId: cardNumber
+
+
+what is a user... just a user ident ... an email ... the core of who uses the system
+
+what is a wallet ...  a collection of payment methods which is their just corresponding information
+
+what is rolodex ... a rolodex card is well this ones easy i feel its all the possible real world connections
+
+transactions are just incoming indications that someone has bought something or returns or voided something
+
+a program is the custom definition of business logic
+
+who are special people? at what rate do they earn points
+what are the payment types? at what rate do they earn points
+what other special perks do they have?
+
+users
+wallet
+rolodex
+transactions
+programs
+
+
+i have a username... i need a user id
+
+i have a user id ... do i need a name?
+
+
+i need a list of usersnames by user id
+and a list of user ids by user name
+
+
+
+
+
+
+
+post transaction
+get transaction history
+
+
+
+business logics
+
+...for every transaction this happens
+...for accurals this happens
+...for this type of card this accural happens

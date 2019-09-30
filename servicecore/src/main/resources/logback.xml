@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<configuration>
+
+    <!-- Output as json to standard out -->
+    <appender name="STDOUT-JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>logTimestamp</fieldName>
+                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSSZZ</pattern>
+                </timestamp>
+                <logLevel>
+                    <fieldName>level</fieldName>
+                </logLevel>
+                <loggerName>
+                    <fieldName>loggerName</fieldName>
+                </loggerName>
+                <threadName>
+                    <fieldName>thread</fieldName>
+                </threadName>
+                <message/>
+                <arguments/>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>512</maxLength>
+                        <shortenedClassNameLength>50</shortenedClassNameLength>
+                        <rootCauseFirst>true</rootCauseFirst>
+                    </throwableConverter>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- Output to a UDP endpoint -->
+    <appender name="UDP" class="net.logstash.logback.appender.LogstashUdpSocketAppender">
+        <host>${UDP_HOST:-localhost}</host>
+        <port>${UDP_PORT:-8125}</port>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%msg</Pattern>
+        </layout>
+    </appender>
+
+    <!-- Output to standard out -->
+    <appender name="STDOUT-RAW" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="akka" additivity="false">
+        <appender-ref ref="STDOUT-JSON"/>
+    </logger>
+
+    <logger name="udp" additivity="false" level="${UDP_LOG_LEVEL:-OFF}">
+        <appender-ref ref="UDP"/>
+    </logger>
+
+    <root level="${ROOT_LOG_LEVEL:-INFO}"/>
+
+</configuration>
