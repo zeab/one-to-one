@@ -5,4 +5,5 @@ object ModuleNames {
   val walletsKey: String = "wallets"
   val transactionsKey: String = "transactions"
   val businessRulesKey: String = "businessrules"
+  val programsKey: String = "programs"
 }

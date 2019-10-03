@@ -1,6 +1,8 @@
 package onetoone.transactions
 
 //Imports
+import akka.actor.ActorRef
+import akka.util.Timeout
 import onetoone.servicecore.service.ServiceCore
 import onetoone.transactions.http.{PostTransactionRequest, PostTransactions200}
 //Scala
@@ -16,11 +18,14 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 //Circe
 import io.circe.generic.AutoDerivation
+import akka.pattern.ask
+import scala.concurrent.duration._
 
 trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
-
+  val programs: ActorRef
+  implicit val timeout = Timeout(5.second)
   val transactions: Route =
     pathPrefix("transactions") {
       get {
@@ -49,12 +54,29 @@ trait HttpService extends ServiceCore with AutoDerivation {
                     case Some(_) =>
                       complete(StatusCodes.NotAcceptable, "Already Processed Transaction")
                     case None =>
+
+
+
                       session.handle
                         .execute(s"insert into transactions.ledger (userId,transactionId) values ('$userId', '${req.transactionId}');")
                         .list
                       session.handle
                         .execute(s"insert into transactions.transactions (userId, date, timestamp, transactionId, amountInPennies) values ('$userId', '${req.timestamp}', now(), '${req.transactionId}', ${req.amountInPennies});")
                         .list
+
+                      //user id and then... 
+
+                      //get the current program and the current tier
+
+//                      (programs ? "").mapTo[String].map{s =>
+//                        s
+//                      }
+                      //how do i know the programs at this point...?
+
+                      //how do i know what the accural level is for the particular card that i have...
+                      //a card should have its own accural rating...
+
+
                       //update point totals here...
                       //but i feel like im over loading this just a little its really heavy...
                       //or do i sent the kafka message here to update the point totals...

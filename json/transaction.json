@@ -1,0 +1,25 @@
+
+{
+  "transactionId": "xxx456",
+  "timestamp": 1570061731,
+  "currencyCode": 840,
+  "receipt": [
+    {
+      "itemName": "panda",
+      "itemId": "xwfwf",
+      "lineSubTotal": 1.00,
+      "tax": 0.05
+    }
+  ],
+  "tenders": [
+    {
+      "accountId": "zzx",
+      "amount": 0.50
+    },
+    {
+      "type": "cash",
+      "amount": 0.55
+    }
+  ],
+  "grandTotal": 1.05
+}

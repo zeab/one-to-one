@@ -3,6 +3,7 @@ package onetoone.transactions
 //Imports
 import java.util.UUID
 
+import akka.actor.Props
 import onetoone.servicecore.service.ServiceShutdown
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -24,6 +25,8 @@ object Transactions extends App with HttpService with ServiceShutdown {
   implicit val system: ActorSystem = ActorSystem("Transactions", ConfigFactory.load())
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
+
+  val programs = system.actorOf(Props[Programs])
 
   //Udp Connection
   val udpLog = LoggerFactory.getLogger("udp")

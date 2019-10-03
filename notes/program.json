@@ -1,0 +1,77 @@
+
+{
+  "name": "alaskan",
+  "id": "xxxxxxx",
+  "tiers": [
+    {
+      "name": "white",
+      "level": 0,
+      "profiles":[
+        {
+          "type": "base",
+          "pointBucket": "base",
+          "earn": 1.0
+        },
+        {
+          "type": "employee",
+          "pointBucket": "base",
+          "earn": 1.5
+        },
+        {
+          "type": "employee",
+          "pointBucket": "extra",
+          "earn": 0.5
+        },
+        {
+          "type": "chase",
+          "pointBucket": "extra",
+          "earn": 0.5
+        }
+      ]
+    },
+    {
+      "name": "green",
+      "level": 1,
+      "profiles":[
+        {
+          "type": "base",
+          "pointBucket": "base",
+          "earn": 2.0
+        },
+        {
+          "type": "employee",
+          "pointBucket": "base",
+          "earn": 2.0
+        },
+        {
+          "type": "base",
+          "pointBucket": "extra",
+          "earn": 2.0
+        },
+        {
+          "type": "employee",
+          "pointBucket": "extra",
+          "earn": 2.5
+        }
+      ]
+    },
+    {
+      "name": "black",
+      "level": 2,
+      "profiles":[
+        {
+          "type": "base",
+          "pointBucket": "base",
+          "earn": 5.0
+        },
+        {
+          "type": "base",
+          "pointBucket": "extra",
+          "earn": 5.0
+        }
+      ]
+    }
+  ],
+  "activeDate": "default",
+  "endDate": "default"
+}

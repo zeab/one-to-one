@@ -4,5 +4,6 @@ case class PostTransactionRequest(
                                    transactionId: String,
                                    timestamp: String,
                                    cardNumber: String,
-                                   amountInPennies: Int
+                                   amountInPennies: Int,
+                                   currencyCode:Int
                                  )

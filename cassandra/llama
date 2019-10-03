@@ -1,0 +1,118 @@
+
+
+DROP KEYSPACE IF EXISTS users;
+CREATE KEYSPACE IF NOT EXISTS users
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS users.user_by_email (
+    email text PRIMARY KEY,
+    userId text
+);
+
+CREATE TABLE IF NOT EXISTS users.users (
+    userId text,
+    walletId text,
+    email text,
+    createDateTime timeuuid,
+    lastActivityDateTime timeuuid,
+    userType text,
+    PRIMARY KEY((userId), walletId, createDateTime, lastActivityDateTime)
+);
+
+CREATE TABLE IF NOT EXISTS users.user_by_user_type (
+    userId text,
+    walletId text,
+    email text,
+    createDateTime text,
+    userType text,
+    PRIMARY KEY((userType), userId)
+);
+
+DROP KEYSPACE IF EXISTS accounts;
+CREATE KEYSPACE IF NOT EXISTS accounts
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS accounts.accounts (
+    accountId text,
+    walletId text,
+    programId text,
+    userType text,
+    name text,
+    PRIMARY KEY((accountId), walletId, programId)
+);
+
+DROP KEYSPACE IF EXISTS wallets;
+CREATE KEYSPACE IF NOT EXISTS wallets
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS wallets.last_modified (
+    walletId text,
+    timestamp text,
+    PRIMARY KEY((walletId), timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE IF NOT EXISTS wallets.wallet_by_wallet_id (
+    walletId text,
+    programId text,
+    currentTier text,
+    currentPoints text,
+    lifetimePoints text,
+    PRIMARY KEY((walletId), programId)
+);
+
+CREATE TABLE IF NOT EXISTS wallets.wallet_by_user_id (
+    userId text,
+    programId text,
+    currentTier text,
+    currentPoints text,
+    lifetimePoints text,
+    PRIMARY KEY((userId), programId)
+);
+
+DROP KEYSPACE IF EXISTS transactions;
+CREATE KEYSPACE IF NOT EXISTS transactions
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS transactions.transaction_by_transaction_id (
+    transactionId text,
+    userId text,
+    timestamp text,
+    currencyCode int,
+    receipt text,
+    tenders text,
+    grandTotal double,
+    PRIMARY KEY((transactionId), timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE IF NOT EXISTS transactions.transaction_by_user_id (
+    transactionId text,
+    userId text,
+    timestamp text,
+    currencyCode int,
+    receipt text,
+    tenders text,
+    grandTotal double,
+    PRIMARY KEY((userId), timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+DROP KEYSPACE IF EXISTS programs;
+CREATE KEYSPACE IF NOT EXISTS programs
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS programs.program_default (
+    programId text,
+    name text,
+    tiers text,
+    PRIMARY KEY((programId), name)
+);
+
+CREATE TABLE IF NOT EXISTS programs.program_revision (
+    programId text,
+    revisionId text,
+    name text,
+    tiers text,
+    startDateTime text,
+    finalDateTime text,
+    PRIMARY KEY((programId), startDateTime, finalDateTime)
+) WITH CLUSTERING ORDER BY (startDateTime DESC);
+

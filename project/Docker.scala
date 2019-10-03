@@ -45,4 +45,11 @@ object Docker {
     dockerUpdateLatest := true
   )
 
+  val programsDockerSettings: Seq[Def.Setting[_]] = Seq(
+    dockerBaseImage := I.azulOpenjdk8Alpine,
+    dockerRepository := repo,
+    dockerLabels := mapDockerLabels(programsKey, programsVersion, buildTime),
+    dockerUpdateLatest := true
+  )
+
 }

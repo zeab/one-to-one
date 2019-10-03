@@ -1,33 +1,33 @@
-package onetoone.wallets
+package onetoone.programs
 
 //Imports
+import onetoone.programs.http.PostProgramsRequest
+import onetoone.servicecore.Tier
+import onetoone.servicecore.service.ServiceShutdown
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
 //Akka
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import onetoone.servicecore.service.ServiceShutdown
-import onetoone.wallets.http.PostWalletRequest
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.util.{Failure, Success}
 //Datastax
 import com.datastax.driver.core.{Cluster, Session}
 //Slf4j
 import org.slf4j.{Logger, LoggerFactory}
 //Scala
 import scala.concurrent.{ExecutionContext, Future}
-import io.circe.syntax._
+
 import io.circe.generic.auto._
+import io.circe.syntax._
 
-object Wallets extends App with HttpService with ServiceShutdown {
+object Programs extends App with HttpService with ServiceShutdown {
 
-  val x = PostWalletRequest("xx", "44").asJson
+  val x = PostProgramsRequest("xxx", "us", List(Tier("white", 0, 100, 2.0))).asJson
   println(x)
 
   //Akka
-  implicit val system: ActorSystem = ActorSystem("Wallets", ConfigFactory.load())
+  implicit val system: ActorSystem = ActorSystem("Programs", ConfigFactory.load())
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
 
@@ -44,7 +44,11 @@ object Wallets extends App with HttpService with ServiceShutdown {
   override implicit val cluster: Option[Cluster] = startCassandraCluster
   override implicit val session: Option[Session] = startCassandraSession
 
-  //Add the shutdown hooks
+  //Start Kafka
+  override implicit val producer: Option[KafkaProducer[String, String]] = startKafkaProducer
+  override implicit val consumer: Option[KafkaConsumer[String, String]] = startKafkaConsumer()
+
+  //Shutdown the system
   shutdownHookThread
 
 }

@@ -1,0 +1,71 @@
+
+DROP KEYSPACE IF EXISTS users;
+DROP KEYSPACE IF EXISTS wallets;
+DROP KEYSPACE IF EXISTS transactions;
+
+CREATE KEYSPACE IF NOT EXISTS users
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS users.usernames (
+    username text PRIMARY KEY,
+    userId text
+);
+
+CREATE TABLE IF NOT EXISTS users.user_ids (
+    userId text PRIMARY KEY
+);
+
+CREATE KEYSPACE IF NOT EXISTS wallets
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS wallets.current_level (
+    userId text PRIMARY KEY,
+    level text
+);
+
+CREATE TABLE IF NOT EXISTS wallets.user_id_by_card_number (
+    cardNumber text PRIMARY KEY,
+    userId text,
+    programId text,
+    level text
+);
+
+CREATE TABLE IF NOT EXISTS wallets.points (
+    userId text PRIMARY KEY,
+    points text
+);
+
+CREATE KEYSPACE IF NOT EXISTS transactions
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS transactions.transactions (
+    userId text,
+    date text,
+    timestamp timeuuid,
+    transactionId text,
+    amountInBaseUnits int,
+    currencyCode int,
+    PRIMARY KEY((userId, date), timestamp)
+);
+
+CREATE TABLE IF NOT EXISTS transactions.ledger (
+    userId text,
+    transactionId text,
+    PRIMARY KEY(userId, transactionId)
+);
+
+CREATE KEYSPACE IF NOT EXISTS programs
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS programs.program_names (
+    programName text PRIMARY KEY,
+    programId text
+);
+
+CREATE TABLE IF NOT EXISTS programs.programs (
+    programId text PRIMARY KEY,
+    programName text,
+    tiers text,
+    startDateTime text,
+    finalDateTime text
+);

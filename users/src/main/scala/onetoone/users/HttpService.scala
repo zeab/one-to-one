@@ -21,24 +21,25 @@ trait HttpService extends ServiceCore with AutoDerivation {
   val users: Route =
     pathPrefix("users") {
       get {
-        parameter("username") { username: String =>
-          session.handle
-            .execute(s"select * from users.usernames where username = '$username';").list
-            .headOption match {
-            case Some(row) => complete(StatusCodes.OK, GetUser200(row.getString("userId")))
-            case None => complete(StatusCodes.NotFound, ErrorResponse("", "Member not found"))
-          }
-        }
+//        parameter("username") { username: String =>
+//          session.handle
+//            .execute(s"select * from users.usernames where username = '$username';").list
+//            .headOption match {
+//            case Some(row) => complete(StatusCodes.OK, GetUser200(row.getString("userId")))
+//            case None => complete(StatusCodes.NotFound, ErrorResponse("", "Member not found"))
+//          }
+//        }
+        complete()
       } ~
         post {
           decodeRequest {
-            entity(as[PostUserRequest]) { user: PostUserRequest =>
-              val usernamesInSystem: List[Row] =
-                session.handle.execute(s"select * from users.usernames where username = '${user.username}';").list
-              if (usernamesInSystem.isEmpty) {
+            entity(as[PostUserRequest]) { req: PostUserRequest =>
+              val alreadyCreatedUsers: List[Row] =
+                session.handle.execute(s"select * from users.user_by_email where email = '${req.email}';").list
+              if (alreadyCreatedUsers.isEmpty){
                 val userId: String = UUID.randomUUID().toString
-                session.handle.execute(s"insert into users.usernames (username, userId) values ('${user.username}', '$userId');").list
-                session.handle.execute(s"insert into users.user_ids (userId) values ('$userId');").list
+                session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").list
+                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").list
                 complete(StatusCodes.Created, PostUser201(userId))
               }
               else throw new Exception("That username is already taken")

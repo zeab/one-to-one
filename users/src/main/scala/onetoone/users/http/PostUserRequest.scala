@@ -1,3 +1,3 @@
 package onetoone.users.http
 
-case class PostUserRequest(username: String)
+case class PostUserRequest(email: String)

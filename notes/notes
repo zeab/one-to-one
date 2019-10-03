@@ -1,5 +1,46 @@
 
 
+still how does a transaction event know all the info it needs inorder to actually increment and decerment the points...
+
+
+an account number comes in as the transaction comes in...
+how to i use a single call using that info in order to determine what points need to be assigned
+
+... or do i have a completely seperate points service...
+which listens for transactions and then based on the transaction type
+apply the points to that members account...
+
+
+
+
+so when im earning points i dont need to know how many i currently have to make the transaction
+
+so when im burning points i do need to know how many i currently have to make the transaction
+
+
+
+
+
+
+so when i make a transaction...
+i should already know all the relevant programs
+i can do the calculation right then for how much i earned and write it to the db
+
+... i have the userId and the card at at this point
+the card can find me the programId
+which will find me the program
+
+how to actually hold all the point buckets
+
+userId, card, programId, level
+
+//and now how do i do special people...
+
+
+
+when i query for the program on start of a pod then only keep the programs that are possible to effect us
+i.e. forget any of them that cant be active
+
 so what are some rules
 
 coupons
@@ -8,10 +49,12 @@ coupons
     loyal member
 
 promotion
-    Nx points
+    Nx points per item
+    Nx points per cart
+    Nx points per tier
     buy one get one
-    % off item
-    % off items
+    % off item(s)
+    % off cart
 
 tiers
     white
@@ -146,3 +189,116 @@ business logics
 ...for every transaction this happens
 ...for accurals this happens
 ...for this type of card this accural happens
+
+
+
+
+
+
+
+so i have a card number and a userId
+
+how do i then get the info i need about that userId's current tier level within the card's current program...
+
+
+
+
+how do i know a members current tier in a given program
+
+
+current_tier_by_user
+(userId, programId), currentTier
+
+
+cards need to be enrolled in a program at the start and they cant be switched
+
+what about programs of the same currency...
+
+having many layers of programs ... means that it needs to be assoiated to a programId which is valid for all the versions of that program and not just one...
+
+
+
+
+
+program
+	programName
+	programId
+	programDesc
+	PRIMARY KEY (programId)
+
+program_names
+	programName
+	programId
+	PRIMARY KEY (programName)
+
+program_revision
+	programId
+	revisionId
+	tiers
+	startDateTime
+	endDateTime
+	PRIMARY KEY ((programId), revisionId)
+
+
+
+so now.... a card can be assoaited to a master program id
+
+but how do i know ... what a users tier level is actually at...?
+
+
+user's tier level
+	userId
+	programId
+	tierLevel
+	currentPointBuckets
+	lifeTimePointBuckets
+	PRIMARY KEY (userId, programId)
+
+
+tier changes happen only so often...
+
+(userId:xxx, programId:aaa,tierLevel:0, currentPointBucket: List(bucketA:100, bucketB:0), lifeTimePointBucket: List(bucketA:10000, bucketB: 600))
+(userId:xxx, programId:bbb,tierLevel:2, currentPointBucket: List(bucketA:100, bucketB:100))
+(userId:yyy, programId:bbb,tierLevel:0, currentPointBucket: List(bucketA:50, bucketB:50))
+
+
+
+bucket_names
+	bucketName
+	bucketId
+	PRIMARY KEY bucketName
+
+(bucketName:base, bucketId:aaa)
+(bucketName:extra, bucketId:bbb)
+
+bucketId
+	userId
+	bucketId
+	uBucketId
+	name
+	lifeTimePoints
+	currentPoints
+
+
+(userId:xxx, bucketId:aaa, uBucketId:123, lifeTimePoints:100, currentPoints:0)
+(userId:xxx, bucketId:bbb, uBucketId:234, lifeTimePoints:100, currentPoints:0)
+
+
+so how do i get the data that i actually need...when i need it...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

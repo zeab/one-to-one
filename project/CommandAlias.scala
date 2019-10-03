@@ -18,7 +18,9 @@ object CommandAlias {
       dockerCommands(transactionsKey) ++
       dockerCommands("b", businessRulesKey) ++
       dockerCommands(businessRulesKey) ++
-      dockerCommands("all", walletsKey, transactionsKey, usersKey, businessRulesKey)
+      dockerCommands("p", programsKey) ++
+      dockerCommands(programsKey) ++
+      dockerCommands("all", walletsKey, transactionsKey, usersKey, businessRulesKey, programsKey)
 
   //List all Assembly Alias here
   val allAssemblyAlias: Seq[Def.Setting[_]] =
