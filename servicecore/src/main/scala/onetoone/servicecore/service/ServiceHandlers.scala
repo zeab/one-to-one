@@ -3,10 +3,12 @@ package onetoone.servicecore.service
 //Imports
 import onetoone.servicecore.customexceptions.NoSessionException
 //Datastax
-import com.datastax.driver.core.{Cluster, Session}
+import com.datastax.driver.core.{Cluster, ResultSet, Row, Session}
 //Kafka
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+//Scala
+import scala.collection.JavaConverters._
 
 trait ServiceHandlers {
 
@@ -40,6 +42,15 @@ trait ServiceHandlers {
         case Some(openSession) => openSession
         case None => throw NoSessionException()
       }
+  }
+
+  implicit class ResultSetConverter(val resultSet: ResultSet) {
+    def toList: List[Row] = resultSet.asScala.toList
+    def toMap[A](f: (Row) => A, list: List[Row] = resultSet.toList): List[A] = {
+      for {
+        x <- list
+      } yield f(x)
+    }
   }
 
 }

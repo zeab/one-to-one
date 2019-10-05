@@ -24,7 +24,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
 
-  val transactions: Route =
+  val programs: Route =
     pathPrefix("programs") {
       get {
 //        parameter("userId", "date", "daysBack") { (userId, date, daysBack) =>
@@ -42,17 +42,13 @@ trait HttpService extends ServiceCore with AutoDerivation {
         post {
           decodeRequest {
             entity(as[PostProgramsRequest]) { req: PostProgramsRequest =>
+              val revisionId: String = req.revisionId.getOrElse(UUID.randomUUID().toString)
+              val startDateTime: String = req.startDateTime.getOrElse("default")
+              val finalDateTime: String = req.finalDateTime.getOrElse("default")
               session.handle
-                .execute(s"select * from programs.program_default where programId = '${req.programId}';")
-                .list.headOption match {
-                case Some(_) =>
-                  complete(StatusCodes.NotAcceptable, "Program Id already exists")
-                case None =>
-                  session.handle
-                    .execute(s"insert into programs.program_default (programId, name, tiers) values ('${req.programId}', '${req.name}', '${req.tiers.asJson.noSpaces}');")
-                    .list
-                  complete(StatusCodes.Created, req.programId)
-              }
+                .execute(s"insert into programs.program_revision (programId, startDateTime, finalDateTime, revisionId, name, tiers) values ('${req.programId}', '$startDateTime', '$finalDateTime', '$revisionId', '${req.name}', '${req.tiers.asJson.noSpaces}');")
+                .toList
+              complete(StatusCodes.Created, req.programId)
             }
           }
         }
@@ -62,7 +58,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
       extractExternalId { implicit externalId: String =>
         handleExceptions(exceptionHandler) {
           handleRejections(rejectionHandler) {
-            statusCheck("readiness") ~ statusCheck("liveness") ~ transactions
+            statusCheck("readiness") ~ statusCheck("liveness") ~ programs
           }
         }
       }

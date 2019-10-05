@@ -1,6 +1,6 @@
 
 
- docker exec -ti cassandra cqlsh
+docker exec -ti cassandra cqlsh
 
 
 how do i know the transaction was not already processed...

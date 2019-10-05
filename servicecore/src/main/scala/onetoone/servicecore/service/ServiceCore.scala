@@ -179,8 +179,4 @@ trait ServiceCore extends LoggingAndMetrics
     Some(consumer)
   }
 
-  implicit class ResultSetConverter(val resultSet: ResultSet) {
-    def list: List[Row] = resultSet.asScala.toList
-  }
-
 }

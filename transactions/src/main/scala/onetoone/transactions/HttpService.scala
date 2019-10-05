@@ -3,6 +3,10 @@ package onetoone.transactions
 //Imports
 import akka.actor.ActorRef
 import akka.util.Timeout
+import io.circe.syntax._
+import io.circe.parser.decode
+import onetoone.servicecore.PointBucket
+import onetoone.servicecore.cassandra.ProgramRevisionRow
 import onetoone.servicecore.service.ServiceCore
 import onetoone.transactions.http.{PostTransactionRequest, PostTransactions200}
 //Scala
@@ -24,8 +28,8 @@ import scala.concurrent.duration._
 trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
-  val programs: ActorRef
-  implicit val timeout = Timeout(5.second)
+  val programs: List[ProgramRevisionRow]
+//  implicit val timeout = Timeout(5.second)
   val transactions: Route =
     pathPrefix("transactions") {
       get {
@@ -35,7 +39,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
             allDaysToLookFor.flatMap { date: String =>
               session.handle
                 .execute(s"select * from transactions.transactions where userId = '$userId' and date = '$date';")
-                .list.map(_.toString)
+                .toList.map(_.toString)
             }
           complete(StatusCodes.OK, PostTransactions200(allTransactions))
         }
@@ -43,48 +47,57 @@ trait HttpService extends ServiceCore with AutoDerivation {
         post {
           decodeRequest {
             entity(as[PostTransactionRequest]) { req: PostTransactionRequest =>
-              session.handle
-                .execute(s"select * from wallets.user_id_by_card_number where cardNumber = '${req.cardNumber}';")
-                .list.headOption match {
-                case Some(userIdByCardNumberRow) =>
-                  val userId: String = userIdByCardNumberRow.getString("userId")
-                  session.handle
-                    .execute(s"select * from transactions.ledger where userId = '$userId' and transactionId = '${req.transactionId}'")
-                    .list.headOption match {
-                    case Some(_) =>
-                      complete(StatusCodes.NotAcceptable, "Already Processed Transaction")
-                    case None =>
-
-
-
-                      session.handle
-                        .execute(s"insert into transactions.ledger (userId,transactionId) values ('$userId', '${req.transactionId}');")
-                        .list
-                      session.handle
-                        .execute(s"insert into transactions.transactions (userId, date, timestamp, transactionId, amountInPennies) values ('$userId', '${req.timestamp}', now(), '${req.transactionId}', ${req.amountInPennies});")
-                        .list
-
-                      //user id and then... 
-
-                      //get the current program and the current tier
-
-//                      (programs ? "").mapTo[String].map{s =>
-//                        s
-//                      }
-                      //how do i know the programs at this point...?
-
-                      //how do i know what the accural level is for the particular card that i have...
-                      //a card should have its own accural rating...
-
-
-                      //update point totals here...
-                      //but i feel like im over loading this just a little its really heavy...
-                      //or do i sent the kafka message here to update the point totals...
-                      //what if
-                      complete(StatusCodes.Accepted)
+              val alreadyCreatedUser = session.handle.execute(s"select * from accounts.accounts where accountId = '${req.accountId}'").toList
+              if (alreadyCreatedUser.isEmpty) throw new Exception("account id does not exist")
+              else{
+                val programId: String = alreadyCreatedUser.head.getString("programId")
+                val alreadyProcessedTransaction =
+                  session.handle.execute(s"select * from transactions.transaction_by_transaction_id where transactionId = '${req.transactionId}';").toList
+                if (alreadyProcessedTransaction.isEmpty){
+                  val userId = alreadyCreatedUser.head.getString("userId")
+                  val userType = alreadyCreatedUser.head.getString("userType")
+                  session.handle.execute(s"insert into transactions.transaction_by_transaction_id (transactionId, userId, timestamp) values ('${req.transactionId}', '$userId', now());")
+                  val userWallet = session.handle.execute(s"select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId';").toList
+                  if (userWallet.isEmpty) throw new Exception("unable to find users wallet")
+                  else{
+                    val currentPoints = decode[Set[PointBucket]](userWallet.head.getString("currentPoints"))
+                    currentPoints match {
+                      case Right(points) =>
+                        val updatedPoints = points.map{bucket =>
+                          if(bucket.name == userType) PointBucket(bucket.name, bucket.amount + 100)
+                          else bucket
+                        }
+                        session.handle.execute(s"insert into wallets.wallet_by_user_id (currentPoints) values ('$updatedPoints.asJson.noSpaces')")
+                      case Left(ex) => throw ex
+                    }
                   }
-                case None => throw new Exception("no user id found for transaction")
+                  session.handle.execute(s"insert into transactions.transaction_by_user_id (transactionId, userId, timestamp, transaction) values ('${req.transactionId}', '$userId', now(), 'the transaction here...');")
+                  val usersWallet = session.handle.execute("select * from wallets.wallet_by_user_id;").toList
+                  usersWallet.headOption match {
+                    case Some(wallet) =>
+                      val currentTier = wallet.getString("currentTier")
+                      decode[Set[PointBucket]](wallet.getString("currentPoints")) match {
+                        case Right(value) =>
+                          val currentProgram = programs.filter(_.programId == programId)
+                          val t = currentProgram.head.tiers.filter(_.name == currentTier).head
+                          val kkkk = t.profiles.filter(_.`type` == userType).head
+
+                          //pull the bucket
+                          //decode it
+                          //find the bucket in there that i need
+                          //update it
+                          //write it back to the database
+                          session.handle.execute("")
+
+                          value
+                        case Left(ex) => throw ex
+                      }
+                    case None => throw new Exception("cant find the user wallet")
+                  }
+                }
+                else throw new Exception("transaction already processed")
               }
+              complete()
             }
           }
         }

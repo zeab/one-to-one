@@ -11,17 +11,17 @@
         {
           "type" : "base",
           "pointBucket" : "base",
-          "earnRate" : "2.0"
+          "earnRate" : "4.0"
         },
         {
           "type" : "employee",
           "pointBucket" : "base",
-          "earnRate" : "3.0"
+          "earnRate" : "6.0"
         },
         {
           "type" : "employee",
           "pointBucket" : "extra",
-          "earnRate" : "1.0"
+          "earnRate" : "2.0"
         }
       ]
     },
@@ -32,22 +32,22 @@
         {
           "type" : "base",
           "pointBucket" : "base",
-          "earnRate" : "2.5"
+          "earnRate" : "5"
         },
         {
           "type" : "employee",
           "pointBucket" : "base",
-          "earnRate" : "3.5"
+          "earnRate" : "7"
         },
         {
           "type" : "base",
           "pointBucket" : "extra",
-          "earnRate" : "2.0"
+          "earnRate" : "4"
         },
         {
           "type" : "employee",
           "pointBucket" : "extra",
-          "earnRate" : "2.5"
+          "earnRate" : "5"
         }
       ]
     },
@@ -58,26 +58,26 @@
         {
           "type" : "base",
           "pointBucket" : "base",
-          "earnRate" : "3.5"
+          "earnRate" : "7"
         },
         {
           "type" : "employee",
           "pointBucket" : "base",
-          "earnRate" : "4"
+          "earnRate" : "8"
         },
         {
           "type" : "base",
           "pointBucket" : "extra",
-          "earnRate" : "3.0"
+          "earnRate" : "6"
         },
         {
           "type" : "employee",
           "pointBucket" : "extra",
-          "earnRate" : "4"
+          "earnRate" : "8"
         }
       ]
     }
   ],
-  "startDateTime" : null,
-  "finalDateTime" : null
+  "startDateTime" : "2019-01-01",
+  "finalDateTime" : "2019-02-01"
 }

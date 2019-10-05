@@ -36,9 +36,10 @@ CREATE TABLE IF NOT EXISTS accounts.accounts (
     accountId text,
     walletId text,
     programId text,
+    userId text,
     userType text,
     name text,
-    PRIMARY KEY((accountId), walletId, programId)
+    PRIMARY KEY((accountId), userId, programId)
 );
 
 DROP KEYSPACE IF EXISTS wallets;
@@ -47,7 +48,7 @@ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
 CREATE TABLE IF NOT EXISTS wallets.last_modified (
     walletId text,
-    timestamp text,
+    timestamp timeuuid,
     PRIMARY KEY((walletId), timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
@@ -75,23 +76,16 @@ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
 CREATE TABLE IF NOT EXISTS transactions.transaction_by_transaction_id (
     transactionId text,
+    timestamp timeuuid,
     userId text,
-    timestamp text,
-    currencyCode int,
-    receipt text,
-    tenders text,
-    grandTotal double,
     PRIMARY KEY((transactionId), timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
 CREATE TABLE IF NOT EXISTS transactions.transaction_by_user_id (
     transactionId text,
     userId text,
-    timestamp text,
-    currencyCode int,
-    receipt text,
-    tenders text,
-    grandTotal double,
+    timestamp timeuuid,
+    transaction text,
     PRIMARY KEY((userId), timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
@@ -99,20 +93,18 @@ DROP KEYSPACE IF EXISTS programs;
 CREATE KEYSPACE IF NOT EXISTS programs
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
-CREATE TABLE IF NOT EXISTS programs.program_default (
+CREATE TABLE IF NOT EXISTS programs.ledger (
     programId text,
-    name text,
-    tiers text,
-    PRIMARY KEY((programId), name)
+    revisionId text,
+    PRIMARY KEY(programId, revisionId)
 );
 
 CREATE TABLE IF NOT EXISTS programs.program_revision (
     programId text,
+    startDateTime text,
+    finalDateTime text,
     revisionId text,
     name text,
     tiers text,
-    startDateTime text,
-    finalDateTime text,
-    PRIMARY KEY((programId), startDateTime, finalDateTime)
+    PRIMARY KEY((programId), startDateTime, finalDateTime, revisionId)
 ) WITH CLUSTERING ORDER BY (startDateTime DESC);
-

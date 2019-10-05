@@ -4,6 +4,7 @@ package onetoone.wallets
 import com.datastax.driver.core.Row
 import io.circe.generic.AutoDerivation
 import onetoone.servicecore.Tier
+import onetoone.servicecore.cassandra.ProgramRevisionRow
 import onetoone.servicecore.customexceptions.{CardAlreadyRegisteredException, UserIdNotFoundException}
 import onetoone.servicecore.service.ServiceCore
 import onetoone.wallets.http.{PostWalletRequest, PostWalletsCardRequest}
@@ -22,32 +23,26 @@ import io.circe.parser.decode
 trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
+  val programs: List[ProgramRevisionRow]
 
   val wallets: Route =
     pathPrefix("wallets") {
       post{
         decodeRequest{
           entity(as[PostWalletRequest]){ req: PostWalletRequest =>
-
-            val programs =
+            val lowestTier: Tier = programs.flatMap{_.tiers}.sortBy(_.level).headOption.getOrElse(throw new Exception("no tier found"))
+            val pointBuckets: String = programs.flatMap{_.tiers}.flatMap(_.profiles.map{profile =>
+              s"""{"${profile.pointBucket}": 0}"""
+            }).mkString("[", ",", "]")
             session.handle
-              .execute("select * from programs.program_default;")
-              .list
-            val tiers = decode[List[Tier]](programs.map(_.getString("tiers")).head) match {
-              case Right(value) => value.sortBy(_.level)
-              case Left(_) => throw new Exception("bad stuff happened")
-            }
-            val xx = tiers.head
-
+              .execute(s"insert into wallets.wallet_by_wallet_id (walletId, programId, currentTier, currentPoints, lifetimePoints) values ('${req.walletId}', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');")
+              .toList
             session.handle
-              .execute(s"insert into wallets.wallet_by_wallet_id (walletId, programId, currentTier, currentPoints, lifetimePoints) values ('${req.walletId}', '${req.programId}', '${tiers.head}', '{\"base\":0.0}', '{\"base\":0.0}');")
-              .list
-
-            //and
-
-
-
-
+              .execute(s"insert into wallets.wallet_by_user_id (programId, currentTier, currentPoints, lifetimePoints) values ('${req.userId}', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');")
+              .toList
+            session.handle
+              .execute(s"insert into wallets.last_modified (walletId, timestamp) values ('${req.walletId}', now());")
+              .toList
             complete()
           }
         }

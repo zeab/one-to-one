@@ -1,8 +1,11 @@
 package onetoone.users
 
 //Imports
+import onetoone.servicecore.{PointBucket, Tier}
+import onetoone.servicecore.cassandra.ProgramRevisionRow
 import onetoone.servicecore.models.error.ErrorResponse
 import onetoone.servicecore.service.ServiceCore
+import onetoone.servicecore.util.ThreadLocalRandom
 import onetoone.users.http.{GetUser200, PostUser201, PostUserRequest}
 //Datastax
 import com.datastax.driver.core.{Row, Session}
@@ -14,10 +17,13 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 //Java
 import java.util.UUID
+import io.circe.syntax._
 
 trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
+  val programs: List[ProgramRevisionRow]
+
   val users: Route =
     pathPrefix("users") {
       get {
@@ -35,12 +41,24 @@ trait HttpService extends ServiceCore with AutoDerivation {
           decodeRequest {
             entity(as[PostUserRequest]) { req: PostUserRequest =>
               val alreadyCreatedUsers: List[Row] =
-                session.handle.execute(s"select * from users.user_by_email where email = '${req.email}';").list
+                session.handle.execute(s"select * from users.user_by_email where email = '${req.email}';").toList
               if (alreadyCreatedUsers.isEmpty){
                 val userId: String = UUID.randomUUID().toString
-                session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").list
-                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").list
-                complete(StatusCodes.Created, PostUser201(userId))
+                val walletId: String = UUID.randomUUID().toString
+                //create a wallet first
+                val lowestTier: Tier = programs.flatMap{_.tiers}.sortBy(_.level).headOption.getOrElse(throw new Exception("no tier found"))
+                val pointBuckets: String = programs.flatMap{_.tiers}.flatMap(_.profiles.map{profile =>
+                  PointBucket(profile.pointBucket, 0)
+                }).toSet.asJson.noSpaces
+                val accountId: String = ThreadLocalRandom.getRandomNumeric(24)
+                session.handle.execute(s"insert into accounts.accounts (accountId, walletId, programId, userType, name, userId) values ('$accountId', '$walletId', '${req.programId}', '${req.userType}', '${req.name}', '$userId');").toList
+                session.handle.execute(s"insert into wallets.wallet_by_wallet_id (walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$walletId', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
+                session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, currentTier, currentPoints, lifetimePoints) values ('$userId', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
+                session.handle.execute(s"insert into wallets.last_modified (walletId, timestamp) values ('$walletId', now());").toList
+                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList
+                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList
+                session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
+                complete(StatusCodes.Created, PostUser201(userId, accountId))
               }
               else throw new Exception("That username is already taken")
             }
