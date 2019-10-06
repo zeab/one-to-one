@@ -7,10 +7,10 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.datastax.driver.core.Row
 import com.typesafe.config.ConfigFactory
-import onetoone.servicecore.Tier
+import onetoone.servicecore.{PointBucket, Tier}
 import onetoone.servicecore.cassandra.{ProgramDefaultRow, ProgramRevisionRow}
 import onetoone.servicecore.service.ServiceShutdown
-import onetoone.wallets.http.PostWalletRequest
+import onetoone.wallets.http.{PostPointsRequest, PostWalletRequest}
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -29,6 +29,9 @@ object Wallets extends App with HttpService with ServiceShutdown {
 
   val x = PostWalletRequest("xx", "44", "yyyy").asJson
   println(x)
+
+  val y = PostPointsRequest("", Set(PointBucket("base", 100))).asJson
+  println(y)
 
   //Akka
   implicit val system: ActorSystem = ActorSystem("Wallets", ConfigFactory.load())

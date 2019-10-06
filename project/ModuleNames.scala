@@ -6,4 +6,6 @@ object ModuleNames {
   val transactionsKey: String = "transactions"
   val businessRulesKey: String = "businessrules"
   val programsKey: String = "programs"
+  val pointsKey: String = "points"
+  val couponsKey: String = "coupons"
 }

@@ -4,14 +4,6 @@ DROP KEYSPACE IF EXISTS users;
 CREATE KEYSPACE IF NOT EXISTS users
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
-CREATE TABLE IF NOT EXISTS users.user_info_by_user_id (
-    userId text PRIMARY KEY,
-    birthday text,
-    languagePreference text,
-    contactInformation text,
-    contactPreference text
-);
-
 CREATE TABLE IF NOT EXISTS users.user_by_email (
     email text PRIMARY KEY,
     userId text

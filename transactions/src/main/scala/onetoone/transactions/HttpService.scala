@@ -3,6 +3,7 @@ package onetoone.transactions
 //Imports
 import akka.actor.ActorRef
 import akka.util.Timeout
+import com.datastax.driver.core.Row
 import io.circe.syntax._
 import io.circe.parser.decode
 import onetoone.servicecore.PointBucket
@@ -47,7 +48,50 @@ trait HttpService extends ServiceCore with AutoDerivation {
         post {
           decodeRequest {
             entity(as[PostTransactionRequest]) { req: PostTransactionRequest =>
-              val alreadyCreatedUser = session.handle.execute(s"select * from accounts.accounts where accountId = '${req.accountId}'").toList
+              val alreadyCreatedUser: List[Row] = session.executeSafe(s"select * from accounts.accounts where accountId = '${req.accountId}';").toList
+              alreadyCreatedUser.headOption match {
+                case Some(userRow) =>
+                  val programId: String = userRow.getString("programId")
+                  val accountId: String = userRow.getString("accountId")
+                  val walletId: String = userRow.getString("walletId")
+                  val userId: String = userRow.getString("userId")
+                  val userType: String = userRow.getString("userType")
+
+                  session.executeSafe(s"select * from transactions.transaction_by_transaction_id where transactionId = '${req.transactionId}';").toList.headOption match {
+                    case Some(transaction) => throw new Exception("transaction already processed")
+                    case None =>
+                      session.executeSafe(s"select * form wallets.wallet_by_user_id where userId = '$userId' and programId = $programId;").toList.headOption match {
+                        case Some(wallet) =>
+                          val currentTier = wallet.getString("currentTier")
+                          val currentPoints = wallet.getString("currentPoints")
+                          val lifetimePoints = wallet.getString("lifetimePoints")
+
+                          programs.find(program => program.programId == programId && program.startDateTime == "default") match {
+                            case Some(p) =>
+                              p.tiers.find(_.name == currentTier) match {
+                                case Some(value) =>
+                                  val x = value
+                                  println()
+                                case None => throw new Exception("cant find ither stuff")
+                              }
+                            case None => throw new Exception("cant find stuff")
+                          }
+                        case None => throw new Exception("cant find the wallet")
+                      }
+                  }
+
+
+
+
+                  //have i processed this transaction before...
+                  //if i have not
+                  //
+                case None => throw new Exception("can not find user")
+              }
+
+
+
+              //val alreadyCreatedUser = session.handle.execute(s"select * from accounts.accounts where accountId = '${req.accountId}'").toList
               if (alreadyCreatedUser.isEmpty) throw new Exception("account id does not exist")
               else{
                 val programId: String = alreadyCreatedUser.head.getString("programId")

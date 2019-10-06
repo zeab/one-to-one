@@ -9,4 +9,6 @@ object Versions {
   val transactionsVersion: String = s"0.0.$buildTime"
   val businessRulesVersion: String = s"0.0.$buildTime"
   val programsVersion: String = s"0.0.$buildTime"
+  val pointsVersion: String = s"0.0.$buildTime"
+  val couponsVersion: String = s"0.0.$buildTime"
 }

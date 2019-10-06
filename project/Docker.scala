@@ -52,4 +52,18 @@ object Docker {
     dockerUpdateLatest := true
   )
 
+  val pointsDockerSettings: Seq[Def.Setting[_]] = Seq(
+    dockerBaseImage := I.azulOpenjdk8Alpine,
+    dockerRepository := repo,
+    dockerLabels := mapDockerLabels(pointsKey, pointsVersion, buildTime),
+    dockerUpdateLatest := true
+  )
+
+  val couponsDockerSettings: Seq[Def.Setting[_]] = Seq(
+    dockerBaseImage := I.azulOpenjdk8Alpine,
+    dockerRepository := repo,
+    dockerLabels := mapDockerLabels(couponsKey, couponsVersion, buildTime),
+    dockerUpdateLatest := true
+  )
+
 }

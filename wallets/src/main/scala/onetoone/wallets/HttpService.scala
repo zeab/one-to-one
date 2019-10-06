@@ -3,11 +3,11 @@ package onetoone.wallets
 //Scala
 import com.datastax.driver.core.Row
 import io.circe.generic.AutoDerivation
-import onetoone.servicecore.Tier
+import onetoone.servicecore.{PointBucket, Tier}
 import onetoone.servicecore.cassandra.ProgramRevisionRow
 import onetoone.servicecore.customexceptions.{CardAlreadyRegisteredException, UserIdNotFoundException}
 import onetoone.servicecore.service.ServiceCore
-import onetoone.wallets.http.{PostWalletRequest, PostWalletsCardRequest}
+import onetoone.wallets.http.{PostPointsRequest, PostWalletRequest, PostWalletsCardRequest}
 //Imports
 //Akka
 import akka.http.scaladsl.model.StatusCodes
@@ -19,11 +19,36 @@ import com.datastax.driver.core.Session
 //Slf4j
 //Scala
 import io.circe.parser.decode
+import io.circe.syntax._
 
 trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
   val programs: List[ProgramRevisionRow]
+
+  //Feels like we need to move this off into it own service... but its fine for now...
+  val points: Route =
+    pathPrefix("points"){
+      post{
+        decodeRequest{
+          entity(as[PostPointsRequest]){ req: PostPointsRequest =>
+            val usersWallet = session.handle.execute(s"select * from wallets.wallet_by_user_id where userId = '${req.userId}';").toList
+            usersWallet.headOption match {
+              case Some(wallet) =>
+                val programId = wallet.getString("programId")
+                val walletId = wallet.getString("walletId")
+                val updatedCurrentPoints = updatePoints(wallet, req.pointsToAdd, "currentPoints")
+                val updatedLifetimePoints = updatePoints(wallet, req.pointsToAdd, "lifetimePoints")
+                session.handle.execute(s"update wallets.wallet_by_user_id set currentPoints = '${updatedCurrentPoints.asJson.noSpaces}', lifetimePoints = '${updatedLifetimePoints.asJson.noSpaces}' where userId = '${req.userId}' and programId = '$programId';").toList
+                session.handle.execute(s"update wallets.wallet_by_wallet_id set currentPoints = '${updatedCurrentPoints.asJson.noSpaces}', lifetimePoints = '${updatedLifetimePoints.asJson.noSpaces}' where walletId = '$walletId' and programId = '$programId';").toList
+                session.handle.execute(s"insert into wallets.last_modified (walletId, timestamp) values ('$walletId', now());").toList
+              case None => throw new Exception("cant find the users wallet")
+            }
+            complete()
+          }
+        }
+      }
+    }
 
   val wallets: Route =
     pathPrefix("wallets") {
@@ -83,10 +108,26 @@ trait HttpService extends ServiceCore with AutoDerivation {
       extractExternalId { implicit externalId: String =>
         handleExceptions(exceptionHandler) {
           handleRejections(rejectionHandler) {
-            statusCheck("readiness") ~ statusCheck("liveness") ~ wallets
+            statusCheck("readiness") ~ statusCheck("liveness") ~ points
           }
         }
       }
     }
+
+  private def updatePoints(wallet: Row, pointsToAdd: Set[PointBucket], cassandraKey: String): Set[PointBucket] ={
+    decode[Set[PointBucket]](wallet.getString(cassandraKey)) match {
+      case Right(points) =>
+        points.map{bucket =>
+          pointsToAdd.find(_.name == bucket.name) match {
+            case Some(specificBucket) =>
+              PointBucket(bucket.name, bucket.amount + specificBucket.amount)
+            case None => bucket
+          }
+        }
+      case Left(ex) => throw ex
+    }
+
+
+  }
 
 }

@@ -1,5 +1,43 @@
 
 
+
+what kind of api do i actually need to be able to support coupons ....?
+
+how many coupons a user has
+does a user have this specific coupon
+give a user a coupon
+remove a coupon from a user
+
+
+couponId
+walletId
+userId
+
+
+how would i do a free item coupon...
+
+
+
+
+
+so whats in a transactions....
+
+transactionId
+lineItems
+who paid for what...
+grandTotal
+
+
+how to do split transactions... and let everyone win...
+and then void's/returns of items in split transactions
+
+or is a transaction just a record of something that already happened...so i just need to update my points here
+
+how do coupons come into play...
+
+
+
+
 still how does a transaction event know all the info it needs inorder to actually increment and decerment the points...
 
 

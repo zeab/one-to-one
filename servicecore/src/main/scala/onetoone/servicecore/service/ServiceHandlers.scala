@@ -1,7 +1,10 @@
 package onetoone.servicecore.service
 
 //Imports
-import onetoone.servicecore.customexceptions.NoSessionException
+import onetoone.servicecore.customexceptions
+import onetoone.servicecore.customexceptions.{InvalidQueryException, NoSessionException}
+
+import scala.util.{Failure, Success, Try}
 //Datastax
 import com.datastax.driver.core.{Cluster, ResultSet, Row, Session}
 //Kafka
@@ -42,14 +45,19 @@ trait ServiceHandlers {
         case Some(openSession) => openSession
         case None => throw NoSessionException()
       }
+    def executeSafe(query: String): ResultSet =
+      Try(session.handle.execute(query)) match{
+        case Success(resultSet) => resultSet
+        case Failure(ex) => throw InvalidQueryException(query, ex)
+      }
   }
 
   implicit class ResultSetConverter(val resultSet: ResultSet) {
     def toList: List[Row] = resultSet.asScala.toList
-    def toMap[A](f: (Row) => A, list: List[Row] = resultSet.toList): List[A] = {
+    def toMap[A](map: Row => A, list: List[Row] = resultSet.toList): List[A] = {
       for {
-        x <- list
-      } yield f(x)
+        row <- list
+      } yield map(row)
     }
   }
 

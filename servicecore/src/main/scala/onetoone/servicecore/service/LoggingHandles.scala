@@ -19,4 +19,6 @@ trait LoggingHandles {
 
   def logExternalId(implicit id: String): StructuredArgument = value("external-id", id)
 
+  def logExceptionClass(exceptionClass: String): StructuredArgument = value("exception-class", exceptionClass)
+
 }

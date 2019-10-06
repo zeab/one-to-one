@@ -6,7 +6,7 @@ import onetoone.servicecore.cassandra.ProgramRevisionRow
 import onetoone.servicecore.models.error.ErrorResponse
 import onetoone.servicecore.service.ServiceCore
 import onetoone.servicecore.util.ThreadLocalRandom
-import onetoone.users.http.{GetUser200, PostUser201, PostUserRequest}
+import onetoone.users.http.{GetUser200, GetUserInfo200, PostUser201, PostUserInfoRequest, PostUserRequest}
 //Datastax
 import com.datastax.driver.core.{Row, Session}
 //Circe
@@ -26,6 +26,31 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
   val users: Route =
     pathPrefix("users") {
+      path("info"){
+        get{
+          parameter("userId"){userId =>
+            val response =
+              session.executeSafe(s"select * from users.user_info_by_user_id where userId = '$userId';").toList.headOption match {
+                case Some(userInfoRow) =>
+                  val birthday: String = userInfoRow.getString("birthday")
+                  val languagePreference: String = userInfoRow.getString("languagePreference")
+                  val contactInformation: String = userInfoRow.getString("contactInformation")
+                  val contactPreference: String = userInfoRow.getString("contactPreference")
+                  GetUserInfo200(userId, birthday, languagePreference, contactInformation, contactPreference)
+                case None => throw new Exception("cant find user info")
+              }
+            complete(StatusCodes.OK, response)
+          }
+        }~
+        post{
+          decodeRequest{
+            entity(as[PostUserInfoRequest]){ req: PostUserInfoRequest =>
+              session.executeSafe(s"insert into users.user_info_by_user_id (userId, birthday, languagePreference, contactInformation, contactPreference) values ('${req.userId}', '${req.birthday}', '${req.languagePreference}', '${req.contactInformation}', '${req.contactPreference}');")
+              complete(StatusCodes.Created)
+            }
+          }
+        }
+      } ~
       get {
 //        parameter("username") { username: String =>
 //          session.handle
@@ -53,7 +78,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
                 val accountId: String = ThreadLocalRandom.getRandomNumeric(24)
                 session.handle.execute(s"insert into accounts.accounts (accountId, walletId, programId, userType, name, userId) values ('$accountId', '$walletId', '${req.programId}', '${req.userType}', '${req.name}', '$userId');").toList
                 session.handle.execute(s"insert into wallets.wallet_by_wallet_id (walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$walletId', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
-                session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, currentTier, currentPoints, lifetimePoints) values ('$userId', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
+                session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentTier, currentPoints, lifetimePoints) values ('$userId', '${req.programId}', '$walletId', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
                 session.handle.execute(s"insert into wallets.last_modified (walletId, timestamp) values ('$walletId', now());").toList
                 session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList
                 session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList

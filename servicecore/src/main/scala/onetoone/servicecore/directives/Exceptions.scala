@@ -33,8 +33,8 @@ trait Exceptions extends ExternalId with Marshallers with AutoDerivation {
         akkaLog.warn(ex.toString, logExternalId)
         complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-01", ex.toString))
       case ex: Throwable =>
-        akkaLog.warn(ex.toString, logExternalId)
-        complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-00", ex.toString, ex.getClass.toString))
+        akkaLog.warn(ex.toString, logFlatten(logExceptionClass(ex.getClass.toString), logExternalId): _*)
+        complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-00", ex.toString, ex.getCause.toString))
     }
 
 }
