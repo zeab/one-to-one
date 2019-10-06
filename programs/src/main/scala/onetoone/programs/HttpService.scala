@@ -35,7 +35,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
                   val startDateTime: String = req.startDateTime.getOrElse("base")
                   val endDateTime: String = req.endDateTime.getOrElse("base")
                   val revisionId: String = req.revisionId.getOrElse(UUID.randomUUID().toString)
-                  session.executeSafe(s"insert into programs.program_revisions_by_program_id (programId, startDateTime, endDateTime, revisionId, name, tiers) values ('${req.programId}', '$startDateTime', '$endDateTime', '$revisionId', '${req.name}', '${req.levels.asJson.noSpaces}');")
+                  session.executeSafe(s"insert into programs.program_revisions_by_program_id (programId, startDateTime, endDateTime, revisionId, name, levels) values ('${req.programId}', '$startDateTime', '$endDateTime', '$revisionId', '${req.name}', '${req.levels.asJson.noSpaces}');")
                   session.executeSafe(s"insert into programs.ledger (programId, revisionId) values ('${req.programId}', '$revisionId');")
                   complete(StatusCodes.Created)
               }
