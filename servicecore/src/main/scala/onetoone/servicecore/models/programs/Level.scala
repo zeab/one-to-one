@@ -1,8 +1,8 @@
 package onetoone.servicecore.models.programs
 
-case class Tier(
+case class Level(
                  level: Int,
                  name: String,
-                 exp: Int,
+                 pointsToNextLevel: Int,
                  earnProfiles: Set[EarnProfile]
                )

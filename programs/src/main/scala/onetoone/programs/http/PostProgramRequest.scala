@@ -1,12 +1,12 @@
 package onetoone.programs.http
 
-import onetoone.servicecore.models.programs.Tier
+import onetoone.servicecore.models.programs.Level
 
 case class PostProgramRequest(
                                programId: String,
                                revisionId: Option[String],
                                name: String,
-                               tiers: Set[Tier],
+                               levels: Set[Level],
                                startDateTime: Option[String] = None,
                                endDateTime: Option[String] = None
                              )

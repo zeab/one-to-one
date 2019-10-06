@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS programs.program_revisions_by_program_id (
     endDateTime text,
     revisionId text,
     name text,
-    tiers text,
+    levels text,
     PRIMARY KEY((programId), startDateTime, endDateTime, revisionId)
 );
 
@@ -25,8 +25,8 @@ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
 CREATE TABLE IF NOT EXISTS accounts.account_by_account_id (
     accountId text,
-    userId text,
     programId text,
+    userId text,
     PRIMARY KEY(accountId)
 );
 
@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS users.user_by_email (
 CREATE TABLE IF NOT EXISTS users.user_by_user_id (
     userId text,
     walletId text,
+    userType text,
     PRIMARY KEY(userId)
 );
 
@@ -52,10 +53,10 @@ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
 CREATE TABLE IF NOT EXISTS wallets.wallet_by_user_id (
     userId text,
-    walletId text,
     programId text,
-    currentTier text,
-    currentPoints text,
-    lifetimePoints text,
+    walletId text,
+    currentLevel text,
+    currentTanks text,
+    lifetimeTanks text,
     PRIMARY KEY((userId), programId)
 );

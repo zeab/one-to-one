@@ -29,30 +29,22 @@
     {
       "level" : 1,
       "name" : "journeyman",
-      "exp": 500,
+      "pointsToNextLevel": 500,
       "earnProfiles": [
         {
-          "userType": "default",
-          "rate": 3.0
+          "userType": "base",
+          "earnRate": 3.0,
+          "tank": "base"
         },
         {
           "userType": "vip",
-          "rate": 4.0
-        }
-      ]
-    },
-    {
-      "level" : 2,
-      "name" : "advanced",
-      "exp": 2000,
-      "earnProfiles": [
-        {
-          "userType": "default",
-          "rate": 4.0
+          "earnRate": 4.0,
+          "tank": "base"
         },
         {
           "userType": "vip",
-          "rate": 5.0
+          "earnRate": 2.0,
+          "tank": "vip"
         }
       ]
     }

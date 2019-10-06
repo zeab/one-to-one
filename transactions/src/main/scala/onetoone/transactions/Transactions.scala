@@ -3,11 +3,7 @@ package onetoone.transactions
 //Imports
 import java.util.UUID
 
-import io.circe.parser.decode
-import akka.actor.Props
-import com.datastax.driver.core.Row
-import onetoone.servicecore.Tier
-import onetoone.servicecore.cassandra.ProgramRevisionRow
+import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.service.ServiceShutdown
 import onetoone.transactions.http.PostTransactionRequest
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -22,8 +18,9 @@ import com.datastax.driver.core.{Cluster, Session}
 //Slf4j
 import org.slf4j.{Logger, LoggerFactory}
 //Scala
-import scala.concurrent.{ExecutionContext, Future}
 import io.circe.syntax._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object Transactions extends App with HttpService with ServiceShutdown {
 
@@ -55,21 +52,6 @@ object Transactions extends App with HttpService with ServiceShutdown {
   //Shutdown the system
   shutdownHookThread
 
-  val programs = ???
-//    session.handle
-//      .execute("select * from programs.program_revision;")
-//      .toMap{programRow: Row =>
-//        ProgramRevisionRow(
-//          programRow.getString("programId"),
-//          programRow.getString("name"),
-//          decode[List[Tier]](programRow.getString("tiers")) match {
-//            case Right(tier)=> tier
-//            case Left(ex) => throw ex
-//          },
-//          programRow.getString("startDateTime"),
-//          programRow.getString("finalDateTime")
-//        )
-//      }
-
+  val programs: List[ProgramRevisionsByProgramIdRow] = getPrograms()
 
 }

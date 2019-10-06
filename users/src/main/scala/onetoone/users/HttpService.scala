@@ -3,8 +3,8 @@ package onetoone.users
 //Imports
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.models.error.ErrorResponse
-import onetoone.servicecore.models.programs.Tier
-import onetoone.servicecore.models.wallets.ExpSummary
+import onetoone.servicecore.models.programs.Level
+import onetoone.servicecore.models.wallets.TankSummary
 import onetoone.servicecore.service.ServiceCore
 import onetoone.servicecore.util.ThreadLocalRandom
 import onetoone.users.http.{GetUser200, GetUserInfo200, PostUser201, PostUserInfoRequest, PostUserRequest}
@@ -68,13 +68,12 @@ trait HttpService extends ServiceCore with AutoDerivation {
                   //if i have a program id create a new wallet for it else just skip the step
                   req.programId match {
                     case Some(pId) =>
-                      programs.filter(_.name == pId).find(_.startDateTime == "default") match {
+                      programs.filter(_.name == pId).find(_.startDateTime == "base") match {
                         case Some(program) =>
-                          program.tiers.toList.sortBy(_.level).headOption match {
+                          program.levels.toList.sortBy(_.level).headOption match {
                             case Some(tier) =>
-
-                              session.executeSafe(s"insert into wallets.wallet_by_user_id (userId, walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$userId', '$walletId', '${req.programId}', '${tier.name}', '${ExpSummary("default", 0).asJson.noSpaces}', '${ExpSummary("default", 0).asJson.noSpaces}')")
-
+                              val points: String = program.levels.flatMap(_.earnProfiles).map(_.tank).map(tank => TankSummary(0, tank)).asJson.noSpaces
+                              session.executeSafe(s"insert into wallets.wallet_by_user_id (userId, walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$userId', '$walletId', '${req.programId}', '${tier.name}', '$points', '$points')")
 
                             case None => throw new Exception("something else happened...?")
                           }
@@ -82,7 +81,6 @@ trait HttpService extends ServiceCore with AutoDerivation {
                       }
                     case None => akkaLog.debug("no program so im just not doing anything")
                   }
-
                   session.handle.execute(s"insert into users.user_by_user_id (userId, walletId) values ('$userId', '$walletId');").toList
                   session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
                   complete(StatusCodes.Created, PostUser201(userId, accountId))

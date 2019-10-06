@@ -4,7 +4,7 @@ package onetoone.servicecore.service
 import onetoone.servicecore.AppConf
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
-import onetoone.servicecore.models.programs.Tier
+import onetoone.servicecore.models.programs.Level
 import onetoone.servicecore.models.statuscheck.StatusCheckResponse
 //Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
@@ -18,21 +18,19 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 //Scala
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 //Slf4j
-import net.logstash.logback.argument.StructuredArguments.value
 //Circe
 import io.circe.generic.AutoDerivation
 //Java
 import java.time.Duration
 import java.util.{Properties, UUID}
 //Datastax
-import com.datastax.driver.core.{Cluster, ResultSet, Row, Session}
+import com.datastax.driver.core.{Cluster, Row, Session}
 //Logback
-import net.logstash.logback.argument.StructuredArgument
 import io.circe.parser.decode
 
 trait ServiceCore extends LoggingAndMetrics
@@ -57,7 +55,7 @@ trait ServiceCore extends LoggingAndMetrics
         row.getString("endDateTime"),
         row.getString("revisionId"),
         row.getString("name"),
-        decode[Set[Tier]](row.getString("tiers")) match {
+        decode[Set[Level]](row.getString("levels")) match {
           case Right(tiers) => tiers
           case Left (ex) => throw ex
         }

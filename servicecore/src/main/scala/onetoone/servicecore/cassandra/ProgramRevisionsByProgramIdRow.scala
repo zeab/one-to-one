@@ -1,6 +1,6 @@
 package onetoone.servicecore.cassandra
 
-import onetoone.servicecore.models.programs.Tier
+import onetoone.servicecore.models.programs.Level
 
 case class ProgramRevisionsByProgramIdRow(
                                            programId:String,
@@ -8,5 +8,5 @@ case class ProgramRevisionsByProgramIdRow(
                                            endDateTime: String,
                                            revisionId: String,
                                            name: String,
-                                           tiers: Set[Tier]
+                                           levels: Set[Level]
                                          )
