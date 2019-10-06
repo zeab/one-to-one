@@ -11,4 +11,5 @@ object Versions {
   val programsVersion: String = s"0.0.$buildTime"
   val pointsVersion: String = s"0.0.$buildTime"
   val couponsVersion: String = s"0.0.$buildTime"
+  val levelsVersion: String = s"0.0.$buildTime"
 }

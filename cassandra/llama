@@ -1,5 +1,4 @@
 
-
 DROP KEYSPACE IF EXISTS users;
 CREATE KEYSPACE IF NOT EXISTS users
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
@@ -117,3 +116,18 @@ CREATE TABLE IF NOT EXISTS programs.program_revision (
     tiers text,
     PRIMARY KEY((programId), startDateTime, finalDateTime, revisionId)
 ) WITH CLUSTERING ORDER BY (startDateTime DESC);
+
+
+
+
+CREATE TABLE IF NOT EXISTS programs.program_revision (
+    programId text,
+    startDateTime text,
+    finalDateTime text,
+    revisionId text,
+    name text,
+    tiers set<text>,
+    PRIMARY KEY((programId), startDateTime, finalDateTime, revisionId)
+);
+
+

@@ -14,4 +14,5 @@ object Settings {
   val programsSettings: Seq[Def.Setting[_]] = seqBaseProjectTemplate(programsVersion)
   val couponsSettings: Seq[Def.Setting[_]] = seqBaseProjectTemplate(couponsVersion)
   val pointsSettings: Seq[Def.Setting[_]] = seqBaseProjectTemplate(pointsVersion)
+  val levelsSettings: Seq[Def.Setting[_]] = seqBaseProjectTemplate(levelsVersion)
 }

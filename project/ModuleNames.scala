@@ -8,4 +8,5 @@ object ModuleNames {
   val programsKey: String = "programs"
   val pointsKey: String = "points"
   val couponsKey: String = "coupons"
+  val levelsKey: String = "levels"
 }

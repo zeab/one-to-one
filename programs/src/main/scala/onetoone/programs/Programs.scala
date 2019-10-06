@@ -1,10 +1,6 @@
 package onetoone.programs
 
 //Imports
-import java.util.UUID
-
-import onetoone.programs.http.PostProgramsRequest
-import onetoone.servicecore.{Profile, Tier}
 import onetoone.servicecore.service.ServiceShutdown
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -24,11 +20,6 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 object Programs extends App with HttpService with ServiceShutdown {
-
-  println(UUID.randomUUID())
-  val x = PostProgramsRequest(
-    "xxx", None, "us", List(Tier("white", 0, List(Profile("base", "base", "2.0"))))).asJson
-  println(x)
 
   //Akka
   implicit val system: ActorSystem = ActorSystem("Programs", ConfigFactory.load())

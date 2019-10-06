@@ -2,7 +2,9 @@ package onetoone.servicecore.service
 
 //Imports
 import onetoone.servicecore.AppConf
+import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
+import onetoone.servicecore.models.programs.Tier
 import onetoone.servicecore.models.statuscheck.StatusCheckResponse
 //Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
@@ -31,6 +33,7 @@ import java.util.{Properties, UUID}
 import com.datastax.driver.core.{Cluster, ResultSet, Row, Session}
 //Logback
 import net.logstash.logback.argument.StructuredArgument
+import io.circe.parser.decode
 
 trait ServiceCore extends LoggingAndMetrics
   with Exceptions with Rejections
@@ -42,6 +45,25 @@ trait ServiceCore extends LoggingAndMetrics
   val session: Option[Session] = None
   val producer: Option[KafkaProducer[String, String]] = None
   val consumer: Option[KafkaConsumer[String, String]] = None
+
+  def getPrograms(programId: String = ""): List[ProgramRevisionsByProgramIdRow] ={
+    val programIdQuery: String =
+      if (programId == "") ""
+      else s"where programId = '$programId'"
+    session.executeSafe(s"select * from programs.program_revisions_by_program_id $programIdQuery;").toList.map{row: Row =>
+      ProgramRevisionsByProgramIdRow(
+        row.getString("programId"),
+        row.getString("startDateTime"),
+        row.getString("endDateTime"),
+        row.getString("revisionId"),
+        row.getString("name"),
+        decode[Set[Tier]](row.getString("tiers")) match {
+          case Right(tiers) => tiers
+          case Left (ex) => throw ex
+        }
+      )
+    }
+  }
 
   def startCassandraCluster(implicit system: ActorSystem): Option[Cluster] =
     Try {

@@ -1,0 +1,62 @@
+
+{
+  "programId" : "5745e1cc-686e-45a6-8ae3-a442b0cefcfd",
+  "revisionId" : null,
+  "name" : "wizard-us",
+  "levels" : [
+    {
+      "level" : 0,
+      "name" : "novice",
+      "pointsToNextLevel": 100,
+      "earnProfiles": [
+        {
+          "userType": "base",
+          "earnRate": 2.0,
+          "tank": "base"
+        },
+        {
+          "userType": "vip",
+          "earnRate": 3.0,
+          "tank": "base"
+        },
+        {
+          "userType": "vip",
+          "earnRate": 1.0,
+          "tank": "vip"
+        }
+      ]
+    },
+    {
+      "level" : 1,
+      "name" : "journeyman",
+      "exp": 500,
+      "earnProfiles": [
+        {
+          "userType": "default",
+          "rate": 3.0
+        },
+        {
+          "userType": "vip",
+          "rate": 4.0
+        }
+      ]
+    },
+    {
+      "level" : 2,
+      "name" : "advanced",
+      "exp": 2000,
+      "earnProfiles": [
+        {
+          "userType": "default",
+          "rate": 4.0
+        },
+        {
+          "userType": "vip",
+          "rate": 5.0
+        }
+      ]
+    }
+  ],
+  "startDateTime" : null,
+  "finalDateTime" : null
+}

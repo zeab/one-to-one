@@ -54,20 +54,21 @@ object Wallets extends App with HttpService with ServiceShutdown {
   //Add the shutdown hooks
   shutdownHookThread
 
-  val programs =
-    session.handle
-      .execute("select * from programs.program_revision;")
-      .toMap{programRow: Row =>
-        ProgramRevisionRow(
-          programRow.getString("programId"),
-          programRow.getString("name"),
-          decode[List[Tier]](programRow.getString("tiers")) match {
-            case Right(tier)=> tier
-            case Left(ex) => throw ex
-          },
-          programRow.getString("startDateTime"),
-          programRow.getString("finalDateTime")
-        )
-      }
+  val programs = ???
+//  val programs =
+//    session.handle
+//      .execute("select * from programs.program_revision;")
+//      .toMap{programRow: Row =>
+//        ProgramRevisionRow(
+//          programRow.getString("programId"),
+//          programRow.getString("name"),
+//          decode[List[Tier]](programRow.getString("tiers")) match {
+//            case Right(tier)=> tier
+//            case Left(ex) => throw ex
+//          },
+//          programRow.getString("startDateTime"),
+//          programRow.getString("finalDateTime")
+//        )
+//      }
 
 }
