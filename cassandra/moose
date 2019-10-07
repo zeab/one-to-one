@@ -57,3 +57,23 @@ CREATE TABLE IF NOT EXISTS wallets.wallet_by_user_id (
     lifetimeTanks text,
     PRIMARY KEY((userId), programId)
 );
+
+DROP KEYSPACE IF EXISTS transactions;
+CREATE KEYSPACE IF NOT EXISTS transactions
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS transactions.transaction_by_transaction_id (
+    transactionId text,
+    userId text,
+    timestamp bigint,
+    transaction text,
+    PRIMARY KEY ((transactionId), timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+CREATE TABLE IF NOT EXISTS transactions.transaction_by_user_id (
+    userId text,
+    transactionId text,
+    timestamp bigint,
+    transaction text,
+    PRIMARY KEY ((userId), timestamp)
+) WITH CLUSTERING ORDER BY (timestamp DESC);
