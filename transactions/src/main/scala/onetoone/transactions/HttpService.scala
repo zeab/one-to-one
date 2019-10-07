@@ -55,7 +55,10 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
                       //use the program and look for the date of the transaction to process the request
                       val currentEarnProfiles: Set[EarnProfile] =
-                        programs.find(program => program.startDateTime == "base" && program.programId == programId).getOrElse(throw new Exception("soeee")).levels.find(_.level == currentLevel).getOrElse(throw new Exception("asddd")).earnProfiles.filter(_.userType == userType)
+                        programs.find(program => program.startDateTime == 0 && program.programId == programId).getOrElse(throw new Exception("soeee")).levels.find(_.level == currentLevel).getOrElse(throw new Exception("asddd")).earnProfiles.filter(_.userType == userType)
+
+                      //find the program that matches the transaction timestamp...
+                      //if you cant find any that match the programs go back and look for a base program and use that
 
                       def calculatePoints(earnProfiles: Set[EarnProfile], tanks: Set[Tank]): Set[Tank] = {
                         earnProfiles.flatMap { profile: EarnProfile =>

@@ -1,6 +1,7 @@
 package onetoone.servicecore.service
 
 //Imports
+
 import onetoone.servicecore.AppConf
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
@@ -46,20 +47,45 @@ trait ServiceCore extends LoggingAndMetrics
   val producer: Option[KafkaProducer[String, String]] = None
   val consumer: Option[KafkaConsumer[String, String]] = None
 
-  def getPrograms(programId: String = ""): List[ProgramRevisionsByProgramIdRow] ={
+  def getCurrentProgramWithValidDateTime(programId: String, startDateTime: Long, endDateTime: Long, programs: List[ProgramRevisionsByProgramIdRow]): ProgramRevisionsByProgramIdRow = {
+    val validProgramsByDate: List[ProgramRevisionsByProgramIdRow] =
+      programs.filter { programRow =>
+        val startDateTimeCheck: Boolean = between(startDateTime, programRow.startDateTime, programRow.endDateTime)
+        val endDateTimeCheck: Boolean = between(endDateTime, programRow.startDateTime, programRow.endDateTime)
+        startDateTimeCheck && endDateTimeCheck
+      }
+    if (validProgramsByDate.isEmpty)
+      programs.find { program => program.startDateTime == 0 && program.programId == programId } match {
+        case Some(validProgram) => validProgram
+        case None => throw new Exception("cant find a base program or any other program with that program id")
+      }
+    else {
+      if (validProgramsByDate.size == 1) validProgramsByDate.headOption match {
+        case Some(validProgram) => validProgram
+        case None => throw new Exception("something else bad happened here...")
+      }
+      else throw new Exception("more than 1 program is valid... not processing till that is resolved")
+    }
+  }
+
+  def between(i: Long, minValueInclusive: Long, maxValueInclusive: Long): Boolean =
+    if (i >= minValueInclusive && i <= maxValueInclusive) true
+    else false
+
+  def getPrograms(programId: String = ""): List[ProgramRevisionsByProgramIdRow] = {
     val programIdQuery: String =
       if (programId == "") ""
       else s"where programId = '$programId'"
-    session.executeSafe(s"select * from programs.program_revisions_by_program_id $programIdQuery;").toList.map{row: Row =>
+    session.executeSafe(s"select * from programs.program_revisions_by_program_id $programIdQuery;").toList.map { row: Row =>
       ProgramRevisionsByProgramIdRow(
         row.getString("programId"),
-        row.getString("startDateTime"),
-        row.getString("endDateTime"),
+        row.getLong("startDateTime"),
+        row.getLong("endDateTime"),
         row.getString("revisionId"),
         row.getString("name"),
         decode[Set[Level]](row.getString("levels")) match {
           case Right(tiers) => tiers
-          case Left (ex) => throw ex
+          case Left(ex) => throw ex
         }
       )
     }

@@ -58,26 +58,42 @@ trait HttpService extends ServiceCore with AutoDerivation {
         post {
           decodeRequest {
             entity(as[PostUserRequest]) { req: PostUserRequest =>
-              val userId: String = UUID.randomUUID().toString
-              val walletId: String = UUID.randomUUID().toString
-              val accountId: String = UUID.randomUUID().toString
-              val tank: String =
-                programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
-                  .levels.flatMap(_.earnProfiles.map(earnProfile => Tank(0, earnProfile.tank))).asJson.noSpaces
-              val currentLevel: Int =
-                programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
-                  .levels.toList.sortBy(_.level).headOption.getOrElse(throw new Exception(""))
-                  .level
-              //Maybe move to wallets...? or hook up a kafka message that fires when this happens...
-              session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentLevel, currentTanks, lifetimeTanks) values ('$userId', '${req.programId}','$walletId', $currentLevel, '$tank', '$tank');").toList
+              session.executeSafe(s"select * from users.user_by_email where email = '${req.email}';").toList.headOption match {
+                case Some(_) => throw new Exception("email is already taken")
+                case None =>
+                  val userId: String = UUID.randomUUID().toString
+                  val walletId: String = UUID.randomUUID().toString
+                  val accountId: String = UUID.randomUUID().toString
+                  val createDateTime: Long = req.timestamp match {
+                    case Some(timestamp) =>
+                      //validate and convert timestamp into a thing we can use...
+                      timestamp
+                    case None => System.currentTimeMillis()
+                  }
 
-              //Maybe move to accounts
-              session.handle.execute(s"insert into accounts.account_by_account_id (accountId, programId, userId, userType) values ('$accountId', '${req.programId}','$userId', '${req.userType}');").toList
+                  val currentProgram: ProgramRevisionsByProgramIdRow =
+                    getCurrentProgramWithValidDateTime(req.programId, createDateTime, createDateTime, programs)
 
-              //Actually deal wit the user tables
-              session.handle.execute(s"insert into users.user_by_user_id (userId, walletId, userType) values ('$userId', '$walletId', '${req.userType}');").toList
-              session.handle.execute(s"insert into users.user_by_email (email, userId) values ('{${req.email}}', '$userId');").toList
-              complete(StatusCodes.Created, (userId, accountId))
+                  val tank: String =
+                    currentProgram
+                      .levels.flatMap(_.earnProfiles.map(earnProfile => Tank(0, earnProfile.tank)))
+                      .asJson.noSpaces
+                  val currentLevel: Int =
+                    currentProgram
+                      .levels.toList.sortBy(_.level).headOption.getOrElse(throw new Exception("cant find level in list"))
+                      .level
+
+                  //Maybe move to wallets...? or hook up a kafka message that fires when this happens...
+                  session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentLevel, currentTanks, lifetimeTanks) values ('$userId', '${req.programId}','$walletId', $currentLevel, '$tank', '$tank');").toList
+
+                  //Maybe move to accounts
+                  session.handle.execute(s"insert into accounts.account_by_account_id (accountId, programId, userId, userType) values ('$accountId', '${req.programId}','$userId', '${req.userType}');").toList
+
+                  //Actually deal wit the user tables
+                  session.handle.execute(s"insert into users.user_by_user_id (userId, walletId, userType, createdDateTime) values ('$userId', '$walletId', '${req.userType}', $createDateTime);").toList
+                  session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
+                  complete(StatusCodes.Created, (userId, accountId))
+              }
             }
           }
         } ~

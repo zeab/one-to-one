@@ -11,7 +11,7 @@ class LevelEvaluatorMinion(programs: List[ProgramRevisionsByProgramIdRow], sessi
   def receive: Receive = {
     case msg: LevelEvaluateEvent =>
       val currentEarnProfile =
-        programs.find(program => program.startDateTime == "base" && program.programId == msg.programId)
+        programs.find(program => program.startDateTime == 0 && program.programId == msg.programId)
           .getOrElse(throw new Exception("soeee"))
           .levels.find(_.level == msg.currentLevel)
           .getOrElse(throw new Exception("asddd"))

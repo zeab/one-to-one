@@ -5,8 +5,8 @@ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
 CREATE TABLE IF NOT EXISTS programs.program_revisions_by_program_id (
     programId text,
-    startDateTime text,
-    endDateTime text,
+    startDateTime bigint,
+    endDateTime bigint,
     revisionId text,
     name text,
     levels text,
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS users.user_by_user_id (
     userId text,
     walletId text,
     userType text,
+    createdDateTime bigint,
     PRIMARY KEY(userId)
 );
 
