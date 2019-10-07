@@ -3,6 +3,6 @@ package onetoone.servicecore.models.programs
 case class Level(
                  level: Int,
                  name: String,
-                 pointsToNextLevel: Int,
+                 pointsToNextLevel: Set[Set[LevelConditional]],
                  earnProfiles: Set[EarnProfile]
                )

@@ -7,7 +7,30 @@
     {
       "level" : 0,
       "name" : "novice",
-      "pointsToNextLevel": 100,
+      "pointsToNextLevel": [
+        [
+          {
+            "tank": "base",
+            "pointsToNextLevel": 100
+          }
+        ],
+        [
+          {
+            "tank": "vip",
+            "pointsToNextLevel": 50
+          }
+        ],
+        [
+          {
+            "tank": "base",
+            "pointsToNextLevel": 45
+          },
+          {
+            "tank": "vip",
+            "pointsToNextLevel": 45
+          }
+        ]
+      ],
       "earnProfiles": [
         {
           "userType": "base",

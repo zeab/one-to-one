@@ -3,18 +3,6 @@ DROP KEYSPACE IF EXISTS programs;
 CREATE KEYSPACE IF NOT EXISTS programs
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
-CREATE TABLE IF NOT EXISTS programs.ledger (
-    programId text,
-    revisionId text,
-    PRIMARY KEY(programId, revisionId)
-);
-
-CREATE TABLE IF NOT EXISTS programs.ledger (
-    programId text,
-    revisionId text,
-    PRIMARY KEY(programId, revisionId)
-);
-
 CREATE TABLE IF NOT EXISTS programs.program_revisions_by_program_id (
     programId text,
     startDateTime text,
@@ -22,6 +10,7 @@ CREATE TABLE IF NOT EXISTS programs.program_revisions_by_program_id (
     revisionId text,
     name text,
     levels text,
+    lastModified bigint,
     PRIMARY KEY((programId), startDateTime, endDateTime, revisionId)
 );
 

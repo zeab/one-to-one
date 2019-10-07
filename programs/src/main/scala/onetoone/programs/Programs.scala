@@ -1,6 +1,8 @@
 package onetoone.programs
 
 //Imports
+import java.time.{ZoneId, ZoneOffset, ZonedDateTime}
+
 import onetoone.servicecore.service.ServiceShutdown
 //Kafka
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -21,6 +23,16 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 object Programs extends App with HttpService with ServiceShutdown {
+
+  import java.time.Instant
+  import java.time.ZonedDateTime
+
+  println(ZonedDateTime.now())
+  val i = Instant.ofEpochSecond(System.currentTimeMillis())
+  val z = ZonedDateTime.ofInstant(i, ZoneOffset.UTC)
+  val a = ZonedDateTime.ofInstant(i, ZoneId.of("America/Los_Angeles")).toString
+  val tt = ZonedDateTime.ofInstant(i, ZoneId.systemDefault())
+  println(tt)
 
   //Akka
   implicit val system: ActorSystem = ActorSystem("Programs", ConfigFactory.load())

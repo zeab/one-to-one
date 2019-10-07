@@ -2,36 +2,22 @@ package onetoone.wallets
 
 //Imports
 //Akka
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import com.datastax.driver.core.Row
 import com.typesafe.config.ConfigFactory
-import onetoone.servicecore.{PointBucket, Tier}
-import onetoone.servicecore.cassandra.{ProgramDefaultRow, ProgramRevisionRow}
 import onetoone.servicecore.service.ServiceShutdown
-import onetoone.wallets.http.{PostPointsRequest, PostWalletRequest}
-
-import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.util.{Failure, Success}
+import onetoone.wallets.levelevaluator.LevelEvaluator
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
 //Datastax
 import com.datastax.driver.core.{Cluster, Session}
 //Slf4j
 import org.slf4j.{Logger, LoggerFactory}
 //Scala
 import scala.concurrent.{ExecutionContext, Future}
-import io.circe.syntax._
-import io.circe.generic.auto._
-import io.circe.parser.decode
 
 object Wallets extends App with HttpService with ServiceShutdown {
-
-  val x = PostWalletRequest("xx", "44", "yyyy").asJson
-  println(x)
-
-  val y = PostPointsRequest("", Set(PointBucket("base", 100))).asJson
-  println(y)
 
   //Akka
   implicit val system: ActorSystem = ActorSystem("Wallets", ConfigFactory.load())
@@ -51,24 +37,14 @@ object Wallets extends App with HttpService with ServiceShutdown {
   override implicit val cluster: Option[Cluster] = startCassandraCluster
   override implicit val session: Option[Session] = startCassandraSession
 
+  //Start Kafka
+  override implicit val producer: Option[KafkaProducer[String, String]] = startKafkaProducer
+  override implicit val consumer: Option[KafkaConsumer[String, String]] = startKafkaConsumer("wallets", List("level-evaluation"))
+
   //Add the shutdown hooks
   shutdownHookThread
 
-  val programs = ???
-//  val programs =
-//    session.handle
-//      .execute("select * from programs.program_revision;")
-//      .toMap{programRow: Row =>
-//        ProgramRevisionRow(
-//          programRow.getString("programId"),
-//          programRow.getString("name"),
-//          decode[List[Tier]](programRow.getString("tiers")) match {
-//            case Right(tier)=> tier
-//            case Left(ex) => throw ex
-//          },
-//          programRow.getString("startDateTime"),
-//          programRow.getString("finalDateTime")
-//        )
-//      }
+  val programs = getPrograms()
+  val levelEvaluator: ActorRef = system.actorOf(Props(classOf[LevelEvaluator], programs, session))
 
 }

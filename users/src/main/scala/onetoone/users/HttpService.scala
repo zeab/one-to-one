@@ -4,7 +4,7 @@ package onetoone.users
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.models.error.ErrorResponse
 import onetoone.servicecore.models.programs.Level
-import onetoone.servicecore.models.wallets.TankSummary
+import onetoone.servicecore.models.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
 import onetoone.servicecore.util.ThreadLocalRandom
 import onetoone.users.http.{GetUser200, GetUserInfo200, PostUser201, PostUserInfoRequest, PostUserRequest}
@@ -63,7 +63,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
               val accountId: String = UUID.randomUUID().toString
               val tank: String =
                 programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
-                  .levels.flatMap(_.earnProfiles.map(earnProfile => TankSummary(0, earnProfile.tank))).asJson.noSpaces
+                  .levels.flatMap(_.earnProfiles.map(earnProfile => Tank(0, earnProfile.tank))).asJson.noSpaces
               val currentLevel: Int =
                 programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
                   .levels.toList.sortBy(_.level).headOption.getOrElse(throw new Exception(""))

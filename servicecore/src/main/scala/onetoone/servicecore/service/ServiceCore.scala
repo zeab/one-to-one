@@ -4,8 +4,10 @@ package onetoone.servicecore.service
 import onetoone.servicecore.AppConf
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
+import onetoone.servicecore.kafka.KafkaMsg
 import onetoone.servicecore.models.programs.Level
 import onetoone.servicecore.models.statuscheck.StatusCheckResponse
+import org.apache.kafka.clients.consumer.ConsumerConfig
 //Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -184,6 +186,8 @@ trait ServiceCore extends LoggingAndMetrics
     consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     consumerProps.put("group.id", consumerGroupId)
+    //TODO Make this configurable
+    consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     val consumer: KafkaConsumer[String, String] =
       new KafkaConsumer[String, String](consumerProps)
     system.log.info("Kafka Consumer - started")
@@ -192,7 +196,9 @@ trait ServiceCore extends LoggingAndMetrics
       while (true) {
         val records: Iterable[ConsumerRecord[String, String]] =
           consumer.poll(1.second.toMillis).asScala
-        records.foreach { msg => system.eventStream.publish(msg) }
+        records.foreach { msg: ConsumerRecord[String, String] =>
+          system.eventStream.publish(KafkaMsg(msg.topic(), msg.value.mkString))
+        }
       }
     }
     system.log.info("Kafka Consumer - polling")

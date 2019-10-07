@@ -1,7 +1,6 @@
 package onetoone.servicecore.service
 
 //Imports
-import onetoone.servicecore.customexceptions
 import onetoone.servicecore.customexceptions.{InvalidQueryException, NoSessionException}
 
 import scala.util.{Failure, Success, Try}

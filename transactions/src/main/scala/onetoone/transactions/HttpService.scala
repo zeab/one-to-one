@@ -4,10 +4,12 @@ package onetoone.transactions
 
 import akka.http.scaladsl.model.StatusCodes
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
+import onetoone.servicecore.kafka.LevelEvaluateEvent
 import onetoone.servicecore.models.programs.EarnProfile
-import onetoone.servicecore.models.wallets.TankSummary
+import onetoone.servicecore.models.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
 import onetoone.transactions.http.PostTransactionRequest
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 //Scala
 //Akka
 import akka.http.scaladsl.server.Directives._
@@ -24,6 +26,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
   val session: Option[Session]
   val programs: List[ProgramRevisionsByProgramIdRow]
+  val producer: Option[KafkaProducer[String, String]]
 
   val transactions: Route =
     pathPrefix("transactions") {
@@ -41,31 +44,36 @@ trait HttpService extends ServiceCore with AutoDerivation {
                   session.executeSafe(s"select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId';").toList.headOption match {
                     case Some(walletRow) =>
                       val currentLevel: Int = walletRow.getInt("currentLevel")
-                      val currentTanks: Set[TankSummary] = decode[Set[TankSummary]](walletRow.getString("currentTanks")) match {
+                      val currentTanks: Set[Tank] = decode[Set[Tank]](walletRow.getString("currentTanks")) match {
                         case Right(tank) => tank
                         case Left(ex) => throw ex
                       }
-                      val lifetimeTanks: Set[TankSummary] = decode[Set[TankSummary]](walletRow.getString("lifetimeTanks")) match {
+                      val lifetimeTanks: Set[Tank] = decode[Set[Tank]](walletRow.getString("lifetimeTanks")) match {
                         case Right(tank) => tank
                         case Left(ex) => throw ex
                       }
+
+                      //use the program and look for the date of the transaction to process the request
                       val currentEarnProfiles: Set[EarnProfile] =
                         programs.find(program => program.startDateTime == "base" && program.programId == programId).getOrElse(throw new Exception("soeee")).levels.find(_.level == currentLevel).getOrElse(throw new Exception("asddd")).earnProfiles.filter(_.userType == userType)
 
-                      def calculatePoints(earnProfiles: Set[EarnProfile], tanks: Set[TankSummary]): String = {
+                      def calculatePoints(earnProfiles: Set[EarnProfile], tanks: Set[Tank]): Set[Tank] = {
                         earnProfiles.flatMap { profile: EarnProfile =>
                           if (tanks.exists(_.name == profile.tank))
-                            tanks.map { tank: TankSummary =>
-                              if (tank.name == profile.tank) TankSummary(tank.points + (req.amountInBase * profile.earnRate).toInt, tank.name)
+                            tanks.map { tank: Tank =>
+                              if (tank.name == profile.tank) Tank(tank.points + (req.amountInBase * profile.earnRate).toInt, tank.name)
                               else tank
                             }
-                          else tanks ++ Set(TankSummary((req.amountInBase * profile.earnRate).toInt, profile.tank))
-                        }.asJson.noSpaces
+                          else tanks ++ Set(Tank((req.amountInBase * profile.earnRate).toInt, profile.tank))
+                        }
                       }
 
-                      val updatedCurrentTanks: String = calculatePoints(currentEarnProfiles, currentTanks)
-                      val updatedLifetimeTanks: String = calculatePoints(currentEarnProfiles, lifetimeTanks)
-                      session.executeSafe(s"UPDATE wallets.wallet_by_user_id SET currentTanks = '${updatedCurrentTanks}' , lifetimeTanks = '$updatedLifetimeTanks' WHERE userId = '$userId' and programId = '$programId';")
+                      val updatedCurrentTanks = calculatePoints(currentEarnProfiles, currentTanks)
+                      val updatedLifetimeTanks = calculatePoints(currentEarnProfiles, lifetimeTanks)
+                      session.executeSafe(s"UPDATE wallets.wallet_by_user_id SET currentTanks = '${updatedCurrentTanks.asJson.noSpaces}' , lifetimeTanks = '${updatedLifetimeTanks.asJson.noSpaces}' WHERE userId = '$userId' and programId = '$programId';")
+                      val levelEvaluateEvent = LevelEvaluateEvent("", programId, userId, currentLevel, updatedCurrentTanks, updatedLifetimeTanks, userType).asJson.noSpaces
+                      producer.handle.send(new ProducerRecord[String, String]("level-evaluation", levelEvaluateEvent))
+                      producer.handle.flush()
                       complete(StatusCodes.OK)
                     case None => throw new Exception("cant find wallet")
                   }
