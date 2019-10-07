@@ -1,0 +1,54 @@
+
+{
+  "programId" : "fd49d523-324c-4a8f-be8f-364a81668b3d",
+  "revisionId" : null,
+  "name" : "sbux-us",
+  "levels" : [
+    {
+      "level" : 0,
+      "name" : "green",
+      "pointsToNextLevel": 100,
+      "earnProfiles": [
+        {
+          "userType": "base",
+          "earnRate": 2.0,
+          "tank": "reward"
+        },
+        {
+          "userType": "partner",
+          "earnRate": 3.0,
+          "tank": "reward"
+        }
+      ]
+    },
+    {
+      "level" : 1,
+      "name" : "gold",
+      "pointsToNextLevel": 500,
+      "earnProfiles": [
+        {
+          "userType": "base",
+          "earnRate": 3.0,
+          "tank": "reward"
+        },
+        {
+          "userType": "partner",
+          "earnRate": 4.0,
+          "tank": "reward"
+        },
+        {
+          "userType": "base",
+          "earnRate": 3.0,
+          "tank": "tier"
+        },
+        {
+          "userType": "partner",
+          "earnRate": 4.0,
+          "tank": "tier"
+        }
+      ]
+    }
+  ],
+  "startDateTime" : null,
+  "finalDateTime" : null
+}

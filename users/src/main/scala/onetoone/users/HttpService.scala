@@ -62,10 +62,10 @@ trait HttpService extends ServiceCore with AutoDerivation {
               val walletId: String = UUID.randomUUID().toString
               val accountId: String = UUID.randomUUID().toString
               val tank: String =
-                programs.find(_.startDateTime == "base").getOrElse(throw new Exception(""))
+                programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
                   .levels.flatMap(_.earnProfiles.map(earnProfile => TankSummary(0, earnProfile.tank))).asJson.noSpaces
               val currentLevel: Int =
-                programs.find(_.startDateTime == "base").getOrElse(throw new Exception(""))
+                programs.find(program => program.startDateTime == "base" && program.programId == req.programId).getOrElse(throw new Exception(""))
                   .levels.toList.sortBy(_.level).headOption.getOrElse(throw new Exception(""))
                   .level
               //Maybe move to wallets...? or hook up a kafka message that fires when this happens...
