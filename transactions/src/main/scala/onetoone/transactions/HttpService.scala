@@ -59,9 +59,6 @@ trait HttpService extends ServiceCore with AutoDerivation {
                           .levels.find(_.level == currentLevel).getOrElse(throw new Exception("cant find level..."))
                           .earnProfiles.filter(_.userType == userType)
 
-                      //find the program that matches the transaction timestamp...
-                      //if you cant find any that match the programs go back and look for a base program and use that
-
                       def calculatePoints(earnProfiles: Set[EarnProfile], tanks: Set[Tank]): Set[Tank] = {
                         earnProfiles.flatMap { profile: EarnProfile =>
                           if (tanks.exists(_.name == profile.tank))
