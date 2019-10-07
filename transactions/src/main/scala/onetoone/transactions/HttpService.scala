@@ -55,7 +55,9 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
                       //use the program and look for the date of the transaction to process the request
                       val currentEarnProfiles: Set[EarnProfile] =
-                        programs.find(program => program.startDateTime == 0 && program.programId == programId).getOrElse(throw new Exception("soeee")).levels.find(_.level == currentLevel).getOrElse(throw new Exception("asddd")).earnProfiles.filter(_.userType == userType)
+                        getCurrentProgramWithValidDateTime(programId, req.timestamp, req.timestamp, programs)
+                          .levels.find(_.level == currentLevel).getOrElse(throw new Exception("cant find level..."))
+                          .earnProfiles.filter(_.userType == userType)
 
                       //find the program that matches the transaction timestamp...
                       //if you cant find any that match the programs go back and look for a base program and use that
@@ -71,10 +73,10 @@ trait HttpService extends ServiceCore with AutoDerivation {
                         }
                       }
 
-                      val updatedCurrentTanks = calculatePoints(currentEarnProfiles, currentTanks)
-                      val updatedLifetimeTanks = calculatePoints(currentEarnProfiles, lifetimeTanks)
+                      val updatedCurrentTanks: Set[Tank] = calculatePoints(currentEarnProfiles, currentTanks)
+                      val updatedLifetimeTanks: Set[Tank] = calculatePoints(currentEarnProfiles, lifetimeTanks)
                       session.executeSafe(s"UPDATE wallets.wallet_by_user_id SET currentTanks = '${updatedCurrentTanks.asJson.noSpaces}' , lifetimeTanks = '${updatedLifetimeTanks.asJson.noSpaces}' WHERE userId = '$userId' and programId = '$programId';")
-                      val levelEvaluateEvent = LevelEvaluateEvent("", programId, userId, currentLevel, updatedCurrentTanks, updatedLifetimeTanks, userType).asJson.noSpaces
+                      val levelEvaluateEvent = LevelEvaluateEvent(req.timestamp, programId, userId, currentLevel, updatedCurrentTanks, updatedLifetimeTanks, userType).asJson.noSpaces
                       producer.handle.send(new ProducerRecord[String, String]("level-evaluation", levelEvaluateEvent))
                       producer.handle.flush()
                       complete(StatusCodes.OK)

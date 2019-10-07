@@ -24,7 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object Transactions extends App with HttpService with ServiceShutdown {
 
-  val x = PostTransactionRequest(UUID.randomUUID().toString, "2019-01-01", "926117809568517131379177", 1000, 840).asJson
+  val x = PostTransactionRequest(UUID.randomUUID().toString, 0, "926117809568517131379177", 1000, 840).asJson
   println(x)
 
   //Akka

@@ -4,7 +4,7 @@ package onetoone.servicecore.kafka
 import onetoone.servicecore.models.wallets.Tank
 
 case class LevelEvaluateEvent(
-                               timestamp: String,
+                               timestamp: Long,
                                programId: String,
                                userId: String,
                                currentLevel: Int,
