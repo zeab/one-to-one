@@ -59,7 +59,6 @@ trait HttpService extends ServiceCore with AutoDerivation {
         }
     }
 
-
   def all: Route =
     logsAndMetrics {
       extractExternalId { implicit externalId: String =>
