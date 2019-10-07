@@ -54,10 +54,12 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
                       def calculatePoints(earnProfiles: Set[EarnProfile], tanks: Set[TankSummary]): String = {
                         earnProfiles.flatMap { profile: EarnProfile =>
-                          tanks.map { tank: TankSummary =>
-                            if (tank.name == profile.tank) TankSummary(tank.points + (req.amountInBase * profile.earnRate).toInt, tank.name)
-                            else tank
-                          }
+                          if (tanks.exists(_.name == profile.tank))
+                            tanks.map { tank: TankSummary =>
+                              if (tank.name == profile.tank) TankSummary(tank.points + (req.amountInBase * profile.earnRate).toInt, tank.name)
+                              else tank
+                            }
+                          else tanks ++ Set(TankSummary((req.amountInBase * profile.earnRate).toInt, profile.tank))
                         }.asJson.noSpaces
                       }
 
