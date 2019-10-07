@@ -58,53 +58,26 @@ trait HttpService extends ServiceCore with AutoDerivation {
         post {
           decodeRequest {
             entity(as[PostUserRequest]) { req: PostUserRequest =>
-              session.handle.execute(s"select * from users.user_by_email where email = '${req.email}';").toList.headOption match {
-                case Some(_) => throw new Exception("user already created")
-                case None =>
-                  val userId: String = UUID.randomUUID().toString
-                  val walletId: String = UUID.randomUUID().toString
-                  val accountId = ""
+              val userId: String = UUID.randomUUID().toString
+              val walletId: String = UUID.randomUUID().toString
+              val accountId: String = UUID.randomUUID().toString
+              val tank: String =
+                programs.find(_.startDateTime == "base").getOrElse(throw new Exception(""))
+                  .levels.flatMap(_.earnProfiles.map(earnProfile => TankSummary(0, earnProfile.tank))).asJson.noSpaces
+              val currentLevel: Int =
+                programs.find(_.startDateTime == "base").getOrElse(throw new Exception(""))
+                  .levels.toList.sortBy(_.level).headOption.getOrElse(throw new Exception(""))
+                  .level
+              //Maybe move to wallets...? or hook up a kafka message that fires when this happens...
+              session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentLevel, currentTanks, lifetimeTanks) values ('$userId', '${req.programId}','$walletId', $currentLevel, '$tank', '$tank');").toList
 
-                  //if i have a program id create a new wallet for it else just skip the step
-                  req.programId match {
-                    case Some(pId) =>
-                      programs.filter(_.name == pId).find(_.startDateTime == "base") match {
-                        case Some(program) =>
-                          program.levels.toList.sortBy(_.level).headOption match {
-                            case Some(tier) =>
-                              val points: String = program.levels.flatMap(_.earnProfiles).map(_.tank).map(tank => TankSummary(0, tank)).asJson.noSpaces
-                              session.executeSafe(s"insert into wallets.wallet_by_user_id (userId, walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$userId', '$walletId', '${req.programId}', '${tier.name}', '$points', '$points')")
+              //Maybe move to accounts
+              session.handle.execute(s"insert into accounts.account_by_account_id (accountId, programId, userId, userType) values ('$accountId', '${req.programId}','$userId', '${req.userType}');").toList
 
-                            case None => throw new Exception("something else happened...?")
-                          }
-                        case None => throw new Exception("no default program found for this programId")
-                      }
-                    case None => akkaLog.debug("no program so im just not doing anything")
-                  }
-                  session.handle.execute(s"insert into users.user_by_user_id (userId, walletId) values ('$userId', '$walletId');").toList
-                  session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
-                  complete(StatusCodes.Created, PostUser201(userId, accountId))
-              }
-//              if (alreadyCreatedUsers.isEmpty){
-//                val userId: String = UUID.randomUUID().toString
-//                val walletId: String = UUID.randomUUID().toString
-//                //create a wallet first
-//                val lowestTier: Tier = programs.flatMap{_.tiers}.sortBy(_.level).headOption.getOrElse(throw new Exception("no tier found"))
-////                val pointBuckets: String = programs.flatMap{_.tiers}.flatMap(_.profiles.map{profile =>
-////                  PointBucket(profile.pointBucket, 0)
-////                }).toSet.asJson.noSpaces
-//                val pointBuckets: String = ""
-//                val accountId: String = ThreadLocalRandom.getRandomNumeric(24)
-//                session.handle.execute(s"insert into accounts.accounts (accountId, walletId, programId, userType, name, userId) values ('$accountId', '$walletId', '${req.programId}', '${req.userType}', '${req.name}', '$userId');").toList
-//                session.handle.execute(s"insert into wallets.wallet_by_wallet_id (walletId, programId, currentTier, currentPoints, lifetimePoints) values ('$walletId', '${req.programId}', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
-//                session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentTier, currentPoints, lifetimePoints) values ('$userId', '${req.programId}', '$walletId', '${lowestTier.name}', '$pointBuckets', '$pointBuckets');").toList
-//                session.handle.execute(s"insert into wallets.last_modified (walletId, timestamp) values ('$walletId', now());").toList
-//                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList
-//                session.handle.execute(s"insert into users.users (userId, walletId, email, createDateTime, lastActivityDateTime, userType) values ('$userId', 'none', '${req.email}', now(), now(), 'base');").toList
-//                session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
-//                complete(StatusCodes.Created, PostUser201(userId, accountId))
-//              }
-//              else throw new Exception("That username is already taken")
+              //Actually deal wit the user tables
+              session.handle.execute(s"insert into users.user_by_user_id (userId, walletId, userType) values ('$userId', '$walletId', '${req.userType}');").toList
+              session.handle.execute(s"insert into users.user_by_email (email, userId) values ('{${req.email}}', '$userId');").toList
+              complete(StatusCodes.Created, (userId, accountId))
             }
           }
         } ~

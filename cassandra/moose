@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS accounts.account_by_account_id (
     accountId text,
     programId text,
     userId text,
+    userType text,
     PRIMARY KEY(accountId)
 );
 
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS wallets.wallet_by_user_id (
     userId text,
     programId text,
     walletId text,
-    currentLevel text,
+    currentLevel int,
     currentTanks text,
     lifetimeTanks text,
     PRIMARY KEY((userId), programId)

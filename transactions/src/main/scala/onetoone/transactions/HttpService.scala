@@ -2,7 +2,10 @@ package onetoone.transactions
 
 //Imports
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
+import onetoone.servicecore.models.programs.EarnProfile
+import onetoone.servicecore.models.wallets.TankSummary
 import onetoone.servicecore.service.ServiceCore
+import onetoone.transactions.http.PostTransactionRequest
 //Scala
 //Akka
 import akka.http.scaladsl.server.Directives._
@@ -12,6 +15,8 @@ import com.datastax.driver.core.Session
 //Java
 //Circe
 import io.circe.generic.AutoDerivation
+import io.circe.parser.decode
+import io.circe.syntax._
 
 trait HttpService extends ServiceCore with AutoDerivation {
 
@@ -25,41 +30,47 @@ trait HttpService extends ServiceCore with AutoDerivation {
       } ~
       post{
         decodeRequest{
-          entity(as[String]){req =>
-            val accountId = ""
+          entity(as[PostTransactionRequest]){ req: PostTransactionRequest =>
             //select * from accounts.account_by_account_id where accountId = '$accountId'
-            session.executeSafe(s"select * from accounts.account_by_account_id where accountId = '$accountId'").toList.headOption match {
+            session.executeSafe(s"select * from accounts.account_by_account_id where accountId = '${req.accountId}';").toList.headOption match {
               case Some(accountRow) =>
-                val programId = accountRow.getString("programId")
                 val userId = accountRow.getString("userId")
-                session.executeSafe(s"select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId'").toList.headOption match {
+                val programId = accountRow.getString("programId")
+                val userType = accountRow.getString("userType")
+                //select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId'
+                session.executeSafe(s"select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId';").toList.headOption match {
                   case Some(walletRow) =>
-                    val currentLevel = walletRow.getString("currentLevel")
-                    val currentTanks = walletRow.getString("currentTanks")
-                    val lifetimeTanks = walletRow.getString("lifetimeTanks")
-                    programs.find(_.startDateTime == "base") match {
-                      case Some(program) =>
-                        program.levels.find(_.name == currentLevel) match {
-                          case Some(level) =>
-
-                            //do something about getting the right info here...
-
-                            level.earnProfiles
-                          case None => throw new Exception("other something")
-                        }
-                      case None => throw new Exception("smething")
+                    val currentLevel = walletRow.getInt("currentLevel")
+                    val currentTanks = decode[Set[TankSummary]](walletRow.getString("currentTanks")) match {
+                      case Right(tank) => tank
+                      case Left(ex) => throw ex
                     }
+                    val lifetimeTanks = decode[Set[TankSummary]](walletRow.getString("lifetimeTanks")) match {
+                      case Right(tank) => tank
+                      case Left(ex) => throw ex
+                    }
+                    val currentEarnProfiles = programs.find(_.startDateTime == "base").getOrElse(throw new Exception("soeee")).levels.find(_.level == currentLevel).getOrElse(throw new Exception("asddd")).earnProfiles.filter(_.userType == userType)
+
+                    def calculatePoints(earnProfiles:Set[EarnProfile], tanks: Set[TankSummary]): String ={
+                      earnProfiles.flatMap{profile =>
+                        tanks.filter(_.name == profile.tank).map{tank =>
+                          TankSummary(tank.points + (req.amountInBase * profile.earnRate).toInt, tank.name)
+                        }
+                      }.asJson.noSpaces
+                    }
+
+                    val updatedCurrentTanks: String = calculatePoints(currentEarnProfiles, currentTanks)
+                    val updatedLifetimeTanks: String = calculatePoints(currentEarnProfiles, lifetimeTanks)
+
+                    session.executeSafe(s"UPDATE wallets.wallet_by_user_id SET currentTanks = '${updatedCurrentTanks}' , lifetimeTanks = '$updatedLifetimeTanks' WHERE userId = '$userId' and programId = '$programId';")
+
+                    //get the active program (base) and then get the level info based on the current user level info
+                    //take my current points and my lifetime points and do the math and write it back into the database
+                    complete()
                   case None => throw new Exception("cant find wallet")
                 }
-              case None => throw new Exception("cant find the account id")
+              case None => throw new Exception("no account found")
             }
-            //select * from wallets.wallet_by_user_id where userId = '$userId' and programId = '$programId'
-
-            //get the active program (base) and then get the level info based on the current user level info
-
-            //take my current points and my lifetime points and do the math and write it back into the database
-
-            complete()
           }
         }
       }
