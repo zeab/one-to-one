@@ -32,11 +32,18 @@ trait HttpService extends ServiceCore with AutoDerivation {
               session.executeSafe(s"select * from programs.ledger where programId = '${req.programId}' and revisionId = '${req.revisionId}';").toList.headOption match {
                 case Some(_) => throw new Exception("program already created")
                 case None =>
-                  val startDateTime: String = req.startDateTime.getOrElse("base")
-                  val endDateTime: String = req.endDateTime.getOrElse("base")
-                  val revisionId: String = req.revisionId.getOrElse(UUID.randomUUID().toString)
-                  session.executeSafe(s"insert into programs.program_revisions_by_program_id (programId, startDateTime, endDateTime, revisionId, name, levels) values ('${req.programId}', '$startDateTime', '$endDateTime', '$revisionId', '${req.name}', '${req.levels.asJson.noSpaces}');")
-                  session.executeSafe(s"insert into programs.ledger (programId, revisionId) values ('${req.programId}', '$revisionId');")
+                  val alreadyCreatedPrograms = session.executeSafe(s"select * from programs.program_revisions_by_program_id where programId = '${req.programId}';").toList
+                  val alreadyCreatedBaseProgram =
+                    alreadyCreatedPrograms
+                      .filter(row => row.getString("startDateTime") == "base" && row.getString("endDateTime") == "base")
+                  if (alreadyCreatedBaseProgram.isEmpty) {
+                    val startDateTime: String = req.startDateTime.getOrElse("base")
+                    val endDateTime: String = req.endDateTime.getOrElse("base")
+                    val revisionId: String = req.revisionId.getOrElse(UUID.randomUUID().toString)
+                    session.executeSafe(s"insert into programs.program_revisions_by_program_id (programId, startDateTime, endDateTime, revisionId, name, levels) values ('${req.programId}', '$startDateTime', '$endDateTime', '$revisionId', '${req.name}', '${req.levels.asJson.noSpaces}');")
+                    session.executeSafe(s"insert into programs.ledger (programId, revisionId) values ('${req.programId}', '$revisionId');")
+                  }
+                  else throw new Exception("cant create another base program... must update")
                   complete(StatusCodes.Created)
               }
             }

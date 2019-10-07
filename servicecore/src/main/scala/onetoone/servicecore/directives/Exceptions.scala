@@ -3,6 +3,8 @@ package onetoone.servicecore.directives
 //Imports
 import onetoone.servicecore.customexceptions.{CardAlreadyRegisteredException, NoSessionException, UserIdNotFoundException}
 import onetoone.servicecore.models.error.ErrorResponse
+
+import scala.util.{Failure, Success, Try}
 //Akka
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
@@ -34,7 +36,11 @@ trait Exceptions extends ExternalId with Marshallers with AutoDerivation {
         complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-01", ex.toString))
       case ex: Throwable =>
         akkaLog.warn(ex.toString, logFlatten(logExceptionClass(ex.getClass.toString), logExternalId): _*)
-        complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-00", ex.toString, ex.getCause.toString))
+        val exCause: String = Try(ex.getCause.toString) match {
+          case Success(exCause) => exCause
+          case Failure(_) => ""
+        }
+        complete(StatusCodes.InternalServerError, ErrorResponse(s"$exceptionPrefix-00", ex.toString, exCause))
     }
 
 }

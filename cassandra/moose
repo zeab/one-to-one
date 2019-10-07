@@ -9,6 +9,12 @@ CREATE TABLE IF NOT EXISTS programs.ledger (
     PRIMARY KEY(programId, revisionId)
 );
 
+CREATE TABLE IF NOT EXISTS programs.ledger (
+    programId text,
+    revisionId text,
+    PRIMARY KEY(programId, revisionId)
+);
+
 CREATE TABLE IF NOT EXISTS programs.program_revisions_by_program_id (
     programId text,
     startDateTime text,
