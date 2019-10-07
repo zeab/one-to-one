@@ -77,3 +77,21 @@ CREATE TABLE IF NOT EXISTS transactions.transaction_by_user_id (
     transaction text,
     PRIMARY KEY ((userId), timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
+
+
+what does a void actually do...
+it canals out a previous thing that happened
+
+//do i remove the points....
+
+amount of points to remove
+from which tank it should be removed from (the same tank from which they were added ... so do the samething just minus the reuslt)
+the original transaction id
+timestamp
+
+
+//how do i answer the question how many points does this user id and program id currently have...
+
+//how many for a lifetime
+
+
