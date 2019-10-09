@@ -30,6 +30,12 @@ DROP KEYSPACE IF EXISTS users;
 CREATE KEYSPACE IF NOT EXISTS users
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
+CREATE TABLE IF NOT EXISTS users.user_count_by_program_id (
+    programId text,
+    userCount counter,
+    PRIMARY KEY(programId)
+);
+
 CREATE TABLE IF NOT EXISTS users.user_by_email (
     email text,
     userId text,
@@ -95,3 +101,12 @@ timestamp
 //how many for a lifetime
 
 
+DROP KEYSPACE IF EXISTS coupons;
+CREATE KEYSPACE IF NOT EXISTS coupons
+WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
+
+CREATE TABLE IF NOT EXISTS coupons.coupon_by_user_id (
+    userId text,
+    coupon text,
+    PRIMARY KEY((programId), startDateTime, endDateTime, revisionId)
+);

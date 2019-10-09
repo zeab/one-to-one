@@ -1,7 +1,7 @@
 package onetoone.transactions
 
 //Imports
-
+import onetoone.servicecore.encryption.Encryption._
 import akka.http.scaladsl.model.StatusCodes
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.kafka.LevelEvaluateEvent
@@ -42,7 +42,7 @@ trait HttpService extends ServiceCore with AutoDerivation {
               session.executeSafe(s"select * from transactions.transaction_by_transaction_id where transactionId = '${req.transactionId}';").toList.headOption match {
                 case Some(_) => throw new Exception("already processed transaction")
                 case None =>
-                  session.executeSafe(s"select * from accounts.account_by_account_id where accountId = '${req.accountId}';").toList.headOption match {
+                  session.executeSafe(s"select * from accounts.account_by_account_id where accountId = '${req.accountId.encrypt}';").toList.headOption match {
                     case Some(accountRow) =>
                       val userId: String = accountRow.getString("userId")
                       val programId: String = accountRow.getString("programId")

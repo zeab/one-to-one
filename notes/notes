@@ -11,6 +11,44 @@
 1420070400000
 1451606399000
 
+a transaction is just a hey this transaction happened so give points to that user
+a receipt we know lots of things about it and we are validating it as well
+
+how do i do multi tier redemption .... where items are of different value or maybe just item types...?
+
+how do redemption work period... how do i remove points from my account and spend them...?
+
+if i have x amount of points... what can i get... and how do i know ...?
+
+i get a transaction with a
+
+case class Receipt(
+    transactionId: String,
+    timestamp: Long,
+    receiptLineItems: List[ReceiptLineItem],
+    grandTotal: Double
+)
+
+case class ReceiptLineItem(
+    item: String,
+    qty: Double,
+    itemCost: Double,
+    totalCost: Double,
+    tax: Double,
+    tenders: List[Tender],
+    discounts: List[Discount]
+)
+
+case class Tender(
+    name: String,
+    accountId: String,
+    amount: Double
+)
+
+case class Discount(
+    name: String,
+    amount: Double
+)
 
 
 what kind of api do i actually need to be able to support coupons ....?

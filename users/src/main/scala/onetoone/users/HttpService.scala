@@ -2,14 +2,11 @@ package onetoone.users
 
 //Imports
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
-import onetoone.servicecore.models.error.ErrorResponse
-import onetoone.servicecore.models.programs.Level
 import onetoone.servicecore.models.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
-import onetoone.servicecore.util.ThreadLocalRandom
-import onetoone.users.http.{GetUser200, GetUserInfo200, PostUser201, PostUserInfoRequest, PostUserRequest}
+import onetoone.users.http.{GetUserInfo200, PostUserInfoRequest, PostUserRequest}
 //Datastax
-import com.datastax.driver.core.{Row, Session}
+import com.datastax.driver.core.Session
 //Circe
 import io.circe.generic.AutoDerivation
 //Akka
@@ -18,7 +15,9 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 //Java
 import java.util.UUID
+
 import io.circe.syntax._
+import onetoone.servicecore.encryption.Encryption._
 
 trait HttpService extends ServiceCore with AutoDerivation {
 
@@ -87,11 +86,12 @@ trait HttpService extends ServiceCore with AutoDerivation {
                   session.handle.execute(s"insert into wallets.wallet_by_user_id (userId, programId, walletId, currentLevel, currentTanks, lifetimeTanks) values ('$userId', '${req.programId}','$walletId', $currentLevel, '$tank', '$tank');").toList
 
                   //Maybe move to accounts
-                  session.handle.execute(s"insert into accounts.account_by_account_id (accountId, programId, userId, userType) values ('$accountId', '${req.programId}','$userId', '${req.userType}');").toList
+                  session.handle.execute(s"insert into accounts.account_by_account_id (accountId, programId, userId, userType) values ('${accountId.encrypt}', '${req.programId}','$userId', '${req.userType}');").toList
 
                   //Actually deal wit the user tables
                   session.handle.execute(s"insert into users.user_by_user_id (userId, walletId, userType, createdDateTime) values ('$userId', '$walletId', '${req.userType}', $createDateTime);").toList
                   session.handle.execute(s"insert into users.user_by_email (email, userId) values ('${req.email}', '$userId');").toList
+                  session.executeSafe(s"UPDATE users.user_count_by_program_id SET userCount = userCount + 1 WHERE programId = '${req.programId}';")
                   complete(StatusCodes.Created, (userId, accountId))
               }
             }

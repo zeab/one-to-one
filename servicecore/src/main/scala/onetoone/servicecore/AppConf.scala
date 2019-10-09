@@ -27,6 +27,10 @@ trait AppConf {
   val kafkaPort: String = appConf.getString("kafka.port")
   val kafkaConsumerEnabled: Boolean = appConf.getBoolean("kafka.consumer.enabled")
   val kafkaProducerEnabled: Boolean = appConf.getBoolean("kafka.producer.enabled")
+
+  //Encryption
+  val encryptionKey: String = appConf.getString("encryption.key")
+
 }
 
 object AppConf extends AppConf

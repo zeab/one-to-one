@@ -17,8 +17,10 @@ import org.slf4j.{Logger, LoggerFactory}
 //Scala
 import scala.concurrent.{ExecutionContext, Future}
 
-object Wallets extends App with HttpService with ServiceShutdown {
+import onetoone.servicecore.encryption.Encryption._
 
+object Wallets extends App with HttpService with ServiceShutdown {
+  
   //Akka
   implicit val system: ActorSystem = ActorSystem("Wallets", ConfigFactory.load())
   implicit val materializer: ActorMaterializer = ActorMaterializer()
