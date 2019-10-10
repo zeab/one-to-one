@@ -1,7 +1,7 @@
 package onetoone.programs.http
 
 //Imports
-import onetoone.servicecore.models.programs.Level
+import onetoone.servicecore.models.http.programs.Level
 
 case class PutProgramRequest(
                               programId: String,

@@ -1,7 +1,7 @@
 package onetoone.servicecore.directives
 
 //Imports
-import onetoone.servicecore.models.error.ErrorResponse
+import onetoone.servicecore.models.http.error.ErrorResponse
 //Akka
 import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._

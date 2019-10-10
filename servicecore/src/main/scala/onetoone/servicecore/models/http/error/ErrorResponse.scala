@@ -1,4 +1,4 @@
-package onetoone.servicecore.models.error
+package onetoone.servicecore.models.http.error
 
 case class ErrorResponse(
                           code: String,

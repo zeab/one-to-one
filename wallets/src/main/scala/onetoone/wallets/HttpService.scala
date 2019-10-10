@@ -5,7 +5,7 @@ package onetoone.wallets
 import akka.http.scaladsl.model.StatusCodes
 import io.circe.generic.AutoDerivation
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
-import onetoone.servicecore.models.wallets.Tank
+import onetoone.servicecore.models.http.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
 import onetoone.wallets.http.{GetWallets200, PostWalletRequest}
 //Imports

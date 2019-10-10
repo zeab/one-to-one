@@ -3,7 +3,7 @@ package onetoone.coupons
 //Scala
 import com.datastax.driver.core.Row
 import io.circe.generic.AutoDerivation
-import onetoone.servicecore.models.error.ErrorResponse
+import onetoone.servicecore.models.http.error.ErrorResponse
 import onetoone.servicecore.service.ServiceCore
 
 import scala.collection.JavaConverters._

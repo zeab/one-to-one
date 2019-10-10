@@ -105,8 +105,120 @@ DROP KEYSPACE IF EXISTS coupons;
 CREATE KEYSPACE IF NOT EXISTS coupons
 WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 1};
 
-CREATE TABLE IF NOT EXISTS coupons.coupon_by_user_id (
+CREATE TABLE IF NOT EXISTS coupons.coupons_by_user_id (
     userId text,
-    coupon text,
-    PRIMARY KEY((programId), startDateTime, endDateTime, revisionId)
+    coupons text,
+    PRIMARY KEY(userId)
 );
+
+coupon
+    50% off item (one time use)
+
+promotion
+    50% off item (between start and end timestamp)
+
+how do i know the difference between them? how do i check to see if i use them
+
+coupons are kinda like items... and promos are items applied after the receipt is checked for validity
+
+how do i make coupons and items the same...? or maybe they are just discounts
+
+Discount(
+    discountId: String,
+    name: String,
+    includingItems: List[String],
+    excludingItems: List[String],
+    priceModifier: String,
+    expirationPeriod: String
+)
+
+Discount("aaa", "free item", List("anyitemsku"), List.empty, 1?or0?, 6M)
+Discount("bbb", "50% item", List("anyitemsku"), List.empty, 0.5, 0)
+
+so how does a user know that it has access to either one of those discounts...
+
+coupons
+    free item
+    birthday
+    loyal member
+
+promotion
+    Nx points per item
+    Nx points per cart
+    Nx points per tier
+    buy one get one
+    % off item(s)
+    % off cart
+
+
+Coupon(
+    couponId: String,
+    name: String,
+    desc: String,
+    expirationTimestamp: Long
+)
+
+what is the difference between a coupon and a promotion ....
+a coupon is a one time event
+a promotion can go on for a delta
+
+are these business rules....?
+    create coupons
+    create promotions
+    create programs...? since really those are the most advanced business rules...
+
+something about a user's history... all events ... 
+
+
+
+how do i know what kinda of effects a coupon can have....
+
+
+
+
+
+void and returns are different
+
+how do i void a transaction
+it a reverse the same thing as a void...?
+how do i do expiring points... something from the program of course but... what does that actually mean...
+
+have a job that runs every day against a predetermined table to find the users who have points that expire that day
+maybe tombstone those rows after they are removed and keep the table in revere order?
+don't keep them on the table at all if they never expire
+
+
+also how do i do a full on transaction rather than the smaller transaction snippets...
+
+
+
+how to do the point expiration ....
+
+i get points yesterday and points today
+how do i know that i should remove those points from yesterday because they are unused ...
+and then do partial expiration... since i only used most of my points
+
+walletId and points and the amount of points to expire
+
+if i uses my points for something i need to remove the points from expiring
+
+how do i actually use my points...
+like... how do i say lets remove the points because of this reason...
+
+points buys a coupon really
+so then its really back to how do i do coupons because i can always "buy" a new coupon with the points i have
+
+basically just skip the checking of the coupon once i buy it and skip the assigning it ... just assume i have it already and use it as if id done all those other things already
+
+
+
+
+
+
+
+
+
+
+
+
+

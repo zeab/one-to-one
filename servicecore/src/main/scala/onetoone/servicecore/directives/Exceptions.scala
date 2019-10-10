@@ -2,7 +2,7 @@ package onetoone.servicecore.directives
 
 //Imports
 import onetoone.servicecore.customexceptions.{CardAlreadyRegisteredException, NoSessionException, UserIdNotFoundException}
-import onetoone.servicecore.models.error.ErrorResponse
+import onetoone.servicecore.models.http.error.ErrorResponse
 
 import scala.util.{Failure, Success, Try}
 //Akka

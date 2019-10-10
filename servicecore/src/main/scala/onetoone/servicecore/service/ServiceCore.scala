@@ -6,8 +6,8 @@ import onetoone.servicecore.AppConf
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
 import onetoone.servicecore.kafka.KafkaMsg
-import onetoone.servicecore.models.programs.Level
-import onetoone.servicecore.models.statuscheck.StatusCheckResponse
+import onetoone.servicecore.models.http.programs.Level
+import onetoone.servicecore.models.http.statuscheck.StatusCheckResponse
 import org.apache.kafka.clients.consumer.ConsumerConfig
 //Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}

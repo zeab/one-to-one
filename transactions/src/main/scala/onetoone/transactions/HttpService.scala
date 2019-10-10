@@ -5,8 +5,8 @@ import onetoone.servicecore.encryption.Encryption._
 import akka.http.scaladsl.model.StatusCodes
 import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.kafka.LevelEvaluateEvent
-import onetoone.servicecore.models.programs.EarnProfile
-import onetoone.servicecore.models.wallets.Tank
+import onetoone.servicecore.models.http.programs.EarnProfile
+import onetoone.servicecore.models.http.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
 import onetoone.transactions.http.{GetTransactions200, PostTransactionRequest}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
@@ -30,6 +30,12 @@ trait HttpService extends ServiceCore with AutoDerivation {
 
   val transactions: Route =
     pathPrefix("transactions") {
+      path("return"){
+        post{complete()}
+      } ~
+      path("void"){
+        post{complete()}
+      } ~
       get {
         parameter("userId", "afterDateTime"){ (userId, afterDateTime) =>
           val transactions = session.executeSafe(s"select * from transactions.transaction_by_user_id where userId = '$userId';").toList.map(_.toString)

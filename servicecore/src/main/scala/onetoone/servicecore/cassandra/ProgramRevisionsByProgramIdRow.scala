@@ -1,6 +1,6 @@
 package onetoone.servicecore.cassandra
 
-import onetoone.servicecore.models.programs.Level
+import onetoone.servicecore.models.http.programs.Level
 
 case class ProgramRevisionsByProgramIdRow(
                                            programId:String,

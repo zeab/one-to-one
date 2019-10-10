@@ -1,4 +1,4 @@
-package onetoone.servicecore.models.programs
+package onetoone.servicecore.models.http.programs
 
 case class EarnProfile(
                         earnRate: Double,

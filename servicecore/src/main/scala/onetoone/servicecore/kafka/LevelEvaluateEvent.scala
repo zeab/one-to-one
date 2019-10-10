@@ -1,7 +1,7 @@
 package onetoone.servicecore.kafka
 
 //Imports
-import onetoone.servicecore.models.wallets.Tank
+import onetoone.servicecore.models.http.wallets.Tank
 
 case class LevelEvaluateEvent(
                                timestamp: Long,

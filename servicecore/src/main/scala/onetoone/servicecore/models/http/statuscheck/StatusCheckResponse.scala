@@ -1,4 +1,4 @@
-package onetoone.servicecore.models.statuscheck
+package onetoone.servicecore.models.http.statuscheck
 
 case class StatusCheckResponse(
                                 `type`: String,

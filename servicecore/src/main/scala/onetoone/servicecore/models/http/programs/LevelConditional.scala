@@ -1,3 +1,3 @@
-package onetoone.servicecore.models.programs
+package onetoone.servicecore.models.http.programs
 
 case class LevelConditional(tank: String, pointsToNextLevel: Double)
