@@ -2,11 +2,12 @@ package onetoone.wallets.levelevaluator
 
 import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import com.datastax.driver.core.Session
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
-import onetoone.servicecore.kafka.{KafkaMsg, LevelEvaluateEvent}
+import onetoone.servicecore.kafka.LevelEvaluateEvent
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import io.circe.parser.decode
 import io.circe.generic.auto._
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
+import onetoone.servicecore.models.kafka.{KafkaMsg, LevelEvaluateEvent}
 
 class LevelEvaluator(programs: List[ProgramRevisionsByProgramIdRow], session: Option[Session]) extends Actor{
 

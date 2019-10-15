@@ -1,4 +1,4 @@
-package onetoone.servicecore.kafka
+package onetoone.servicecore.models.kafka
 
 //Imports
 import onetoone.servicecore.models.http.wallets.Tank

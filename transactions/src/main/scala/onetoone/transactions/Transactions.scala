@@ -3,7 +3,8 @@ package onetoone.transactions
 //Imports
 import java.util.UUID
 
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
+import com.datastax.driver.core.PreparedStatement
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.service.ServiceShutdown
 import onetoone.transactions.http.PostTransactionRequest
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -44,6 +45,9 @@ object Transactions extends App with HttpService with ServiceShutdown {
   //Start Cassandra
   override implicit val cluster: Option[Cluster] = startCassandraCluster
   override implicit val session: Option[Session] = startCassandraSession
+
+  val transactionByUserIdPrepared: PreparedStatement =
+    session.handle.prepare(s"select * from transactions.transaction_by_user_id where userId = ?;")
 
   //Start Kafka
   override implicit val producer: Option[KafkaProducer[String, String]] = startKafkaProducer

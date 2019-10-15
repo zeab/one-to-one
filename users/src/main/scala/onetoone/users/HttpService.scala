@@ -1,7 +1,7 @@
 package onetoone.users
 
 //Imports
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.models.http.wallets.Tank
 import onetoone.servicecore.service.ServiceCore
 import onetoone.users.http.{GetUserInfo200, PostUserInfoRequest, PostUserRequest}

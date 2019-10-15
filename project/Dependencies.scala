@@ -13,7 +13,7 @@ object Dependencies {
     val logbackJson                 = "6.1"
     val logback                     = "1.2.3"
     val scalaTest                   = "3.0.5"
-    val datastax                    = "3.4.0"
+    val datastax                    = "3.7.2"
     val zooKeeper                   = "3.4.14"
   }
 

@@ -61,3 +61,5 @@ trait ServiceHandlers {
   }
 
 }
+
+object ServiceHandlers extends ServiceHandlers

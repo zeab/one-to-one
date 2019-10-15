@@ -132,8 +132,25 @@ Discount(
     expirationPeriod: String
 )
 
+qty of items ... that are both required and that are applied too...
+
 Discount("aaa", "free item", List("anyitemsku"), List.empty, 1?or0?, 6M)
 Discount("bbb", "50% item", List("anyitemsku"), List.empty, 0.5, 0)
+how would a bogo actually work
+buy something get something...
+
+userId couponId instanceId expirationTimestamp
+
+read all the expiring coupons and shell them off as messages to kafka
+
+when using the coupon tell the expiring list to forget that coupon
+
+but then i need to undo the undo really....
+
+
+the transaction
+
+
 
 so how does a user know that it has access to either one of those discounts...
 

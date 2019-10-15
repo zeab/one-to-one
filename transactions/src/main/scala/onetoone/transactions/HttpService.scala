@@ -3,10 +3,11 @@ package onetoone.transactions
 //Imports
 import onetoone.servicecore.encryption.Encryption._
 import akka.http.scaladsl.model.StatusCodes
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
-import onetoone.servicecore.kafka.LevelEvaluateEvent
+import com.datastax.driver.core.PreparedStatement
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.models.http.programs.EarnProfile
 import onetoone.servicecore.models.http.wallets.Tank
+import onetoone.servicecore.models.kafka.LevelEvaluateEvent
 import onetoone.servicecore.service.ServiceCore
 import onetoone.transactions.http.{GetTransactions200, PostTransactionRequest}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
@@ -28,6 +29,8 @@ trait HttpService extends ServiceCore with AutoDerivation {
   val programs: List[ProgramRevisionsByProgramIdRow]
   val producer: Option[KafkaProducer[String, String]]
 
+  val transactionByUserIdPrepared: PreparedStatement
+  
   val transactions: Route =
     pathPrefix("transactions") {
       path("return"){
@@ -38,7 +41,10 @@ trait HttpService extends ServiceCore with AutoDerivation {
       } ~
       get {
         parameter("userId", "afterDateTime"){ (userId, afterDateTime) =>
-          val transactions = session.executeSafe(s"select * from transactions.transaction_by_user_id where userId = '$userId';").toList.map(_.toString)
+
+          val x = session.executeSafe(s"select * from transactions.transaction_by_user_id where userId = '$userId';").toList
+
+          val transactions = session.handle.execute(transactionByUserIdPrepared.bind(userId)).toList.map(_.toString)
           complete(StatusCodes.OK, GetTransactions200(transactions))
         }
       } ~

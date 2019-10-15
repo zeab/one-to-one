@@ -1,13 +1,14 @@
 package onetoone.servicecore.service
 
 //Imports
-
+import com.datastax.driver.core.ConsistencyLevel
 import onetoone.servicecore.AppConf
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.directives.{Exceptions, LoggingAndMetrics, Rejections, Unmarshallers}
-import onetoone.servicecore.kafka.KafkaMsg
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
 import onetoone.servicecore.models.http.programs.Level
 import onetoone.servicecore.models.http.statuscheck.StatusCheckResponse
+import onetoone.servicecore.models.kafka.KafkaMsg
+import onetoone.servicecore.util.MathUtil
 import org.apache.kafka.clients.consumer.ConsumerConfig
 //Kafka
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
@@ -39,7 +40,8 @@ import io.circe.parser.decode
 trait ServiceCore extends LoggingAndMetrics
   with Exceptions with Rejections
   with Unmarshallers with AutoDerivation
-  with ServiceHandlers with LoggingHandles {
+  with ServiceHandlers with LoggingHandles
+  with MathUtil {
 
   implicit val materializer: ActorMaterializer
   val cluster: Option[Cluster] = None
@@ -68,9 +70,12 @@ trait ServiceCore extends LoggingAndMetrics
     }
   }
 
-  def between(i: Long, minValueInclusive: Long, maxValueInclusive: Long): Boolean =
-    if (i >= minValueInclusive && i <= maxValueInclusive) true
-    else false
+  def prepare: Unit ={
+    val getProgramPrepared = session.handle.prepare(s"select * from programs.program_revisions_by_program_id;")
+    val getProgramStatement = getProgramPrepared.bind().setConsistencyLevel(ConsistencyLevel.ONE)
+    val xx = session.handle.execute(getProgramStatement).toList
+    println()
+  }
 
   def getPrograms(programId: String = ""): List[ProgramRevisionsByProgramIdRow] = {
     val programIdQuery: String =

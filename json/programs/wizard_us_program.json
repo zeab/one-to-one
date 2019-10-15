@@ -95,5 +95,15 @@
     }
   ],
   "startDateTime" : null,
-  "endDateTime" : null
+  "endDateTime" : null,
+  "tanks": [
+    {
+      "name": "base",
+      "expire": "6M"
+    },
+    {
+      "name": "vip",
+      "expire": "0"
+    }
+  ]
 }

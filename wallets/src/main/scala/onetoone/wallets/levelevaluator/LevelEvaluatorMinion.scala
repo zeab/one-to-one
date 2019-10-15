@@ -2,8 +2,8 @@ package onetoone.wallets.levelevaluator
 
 import akka.actor.Actor
 import com.datastax.driver.core.Session
-import onetoone.servicecore.cassandra.ProgramRevisionsByProgramIdRow
-import onetoone.servicecore.kafka.LevelEvaluateEvent
+import onetoone.servicecore.models.cassandra.ProgramRevisionsByProgramIdRow
+import onetoone.servicecore.models.kafka.LevelEvaluateEvent
 import onetoone.servicecore.service.ServiceHandlers
 
 class LevelEvaluatorMinion(programs: List[ProgramRevisionsByProgramIdRow], session: Option[Session]) extends Actor with ServiceHandlers {

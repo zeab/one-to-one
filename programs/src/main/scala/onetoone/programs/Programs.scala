@@ -3,7 +3,7 @@ package onetoone.programs
 //Imports
 import java.time.{ZoneId, ZoneOffset, ZonedDateTime}
 
-import onetoone.servicecore.service.ServiceShutdown
+import onetoone.servicecore.service.{ServiceQueries, ServiceShutdown}
 //Kafka
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-object Programs extends App with HttpService with ServiceShutdown {
+object Programs extends App with HttpService with ServiceShutdown with ServiceQueries {
 
   import java.time.Instant
   import java.time.ZonedDateTime
@@ -51,6 +51,8 @@ object Programs extends App with HttpService with ServiceShutdown {
   //Start Cassandra
   override implicit val cluster: Option[Cluster] = startCassandraCluster
   override implicit val session: Option[Session] = startCassandraSession
+
+  //Prepare statments here...
 
   //Start Kafka
   override implicit val producer: Option[KafkaProducer[String, String]] = startKafkaProducer

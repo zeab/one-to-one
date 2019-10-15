@@ -1,4 +1,4 @@
-package onetoone.servicecore.cassandra
+package onetoone.servicecore.models.cassandra
 
 import onetoone.servicecore.models.http.programs.Level
 
